@@ -57,6 +57,8 @@ public class DictionaryInfo {
     private String dataSourceFormat;
     @JacksonXmlProperty(localName = "StyleSheet", isAttribute = true)
     private String styleSheet;
+    @JacksonXmlProperty(localName = "RegCode", isAttribute = true)
+    private String regCode;
 
     @JsonIgnore
     private long keyBlockPosition;
@@ -188,6 +190,14 @@ public class DictionaryInfo {
 
     public void setStyleSheet(final String styleSheet) {
         this.styleSheet = styleSheet;
+    }
+
+    public String getRegCode() {
+        return regCode;
+    }
+
+    public void setRegCode(final String regCode) {
+        this.regCode = regCode;
     }
 
     public long getKeyBlockPosition() {

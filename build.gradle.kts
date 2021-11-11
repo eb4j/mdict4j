@@ -28,6 +28,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
+    implementation("org.anarres.lzo:lzo-core:1.0.6")
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")

@@ -40,9 +40,12 @@ public class ZlibBlockInputStream extends MDBlockInputStream implements AutoClos
         inputStream.readFully(input);
         decompressor.setInput(input);
         int size = decompressor.inflate(output);
-        decompressor.end();
         if (checksum != decompressor.getAdler()) {
             throw new MDException("checksum error");
+        }
+        decompressor.end();
+        if (size != decompSize) {
+            throw new MDException("Decompression error, wrong size.");
         }
         bytes = ByteBuffer.wrap(output);
     }

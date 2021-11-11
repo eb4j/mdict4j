@@ -25,10 +25,10 @@ import java.util.List;
 import java.util.Map;
 
 public class DictionaryIndex {
-    final List<String> keyNameList = new ArrayList<>();
-    final List<String> firstLastKeys = new ArrayList<>();
-    final Map<String, Long> offsetMap = new HashMap<>();
-    final Map<String, Long> recordMap = new LinkedHashMap<>();
+    public final List<String> keyNameList = new ArrayList<>();
+    public final List<String> firstLastKeys = new ArrayList<>();
+    public final Map<String, Long> offsetMap = new HashMap<>();
+    public final Map<String, Long> recordMap = new LinkedHashMap<>();
 
     long keyNumBlocks;
     long keySum;

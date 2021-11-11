@@ -18,6 +18,7 @@
 
 package io.github.eb4j.mdict;
 
+import io.github.eb4j.mdict.data.DictionaryIndex;
 import io.github.eb4j.mdict.data.DictionaryInfo;
 import io.github.eb4j.mdict.data.MdxParser;
 import io.github.eb4j.mdict.io.MDInputStream;
@@ -40,8 +41,8 @@ class MdxParserTest {
         DictionaryInfo dictionaryInfo = MdxParser.parseHeader(inputStream);
         assertEquals("Html", dictionaryInfo.getFormat());
         assertEquals("2.0", dictionaryInfo.getRequiredEngineVersion());
-        assertEquals(858, dictionaryInfo.getKeyBlockPosition());
-        assertEquals("1", dictionaryInfo.getEncrypted());
+        assertEquals(630, dictionaryInfo.getKeyBlockPosition());
+        assertEquals("0", dictionaryInfo.getEncrypted());
     }
 
     @Test
@@ -49,8 +50,10 @@ class MdxParserTest {
         MDInputStream inputStream = new MDInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
         DictionaryInfo info = new DictionaryInfo();
-        info.setKeyBlockPosition(858);
+        info.setKeyBlockPosition(630);
         info.setEncoding("UTF-8");
-        MdxParser.parseIndex(inputStream, info);
+        DictionaryIndex index = MdxParser.parseIndex(inputStream, info);
+        assertEquals(81, index.offsetMap.size());
+        assertEquals(81, index.keyNameList.size());
     }
 }

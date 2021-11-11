@@ -26,6 +26,7 @@ import io.github.eb4j.mdict.io.MDBlockInputStream;
 import io.github.eb4j.mdict.io.MDInputStream;
 import io.github.eb4j.mdict.io.ZlibBlockInputStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -92,7 +93,7 @@ public class MdxParser {
         parseKeyBlockSizes(mdInputStream, dictionaryIndex);
         parseKeyBlockInfo(mdInputStream, encoding, dictionaryIndex);
         parseKeyBlocks(mdInputStream, encoding, dictionaryIndex);
-        parseRecordBlock(mdInputStream, encoding, dictionaryIndex);
+        parseRecordBlock(mdInputStream, dictionaryIndex);
         return dictionaryIndex;
     }
 
@@ -128,7 +129,8 @@ public class MdxParser {
     }
 
     private static void parseKeyBlockInfo(final MDInputStream mdInputStream, final Charset encoding,
-                                          final DictionaryIndex keyBlockValues) throws MDException, IOException, DataFormatException {
+                                          final DictionaryIndex dictionaryIndex) throws MDException,
+            IOException, DataFormatException {
         // Key Block info
         //
         // +----------------------------------------------------+
@@ -145,19 +147,20 @@ public class MdxParser {
         //
         byte[] hWord = new byte[2];
         byte[] dWord = new byte[8];
-        MDBlockInputStream indexDs = decompress(mdInputStream, keyBlockValues.keyIndexCompLen, keyBlockValues.keyIndexDecompLen);
-        keyBlockValues.compSize = new long[(int) keyBlockValues.keyNumBlocks];
-        keyBlockValues.decompSize = new long[(int) keyBlockValues.keyNumBlocks];
-        keyBlockValues.numEntries = new long[(int) keyBlockValues.keyNumBlocks];
-        for (int i = 0; i < keyBlockValues.keyNumBlocks; i++) {
+        MDBlockInputStream indexDs = decompress(mdInputStream, dictionaryIndex.keyIndexCompLen,
+                dictionaryIndex.keyIndexDecompLen);
+        dictionaryIndex.compSize = new long[(int) dictionaryIndex.keyNumBlocks];
+        dictionaryIndex.decompSize = new long[(int) dictionaryIndex.keyNumBlocks];
+        dictionaryIndex.numEntries = new long[(int) dictionaryIndex.keyNumBlocks];
+        for (int i = 0; i < dictionaryIndex.keyNumBlocks; i++) {
             indexDs.readFully(dWord);
-            keyBlockValues.numEntries[i] = byteArrayToLong(dWord);
+            dictionaryIndex.numEntries[i] = byteArrayToLong(dWord);
             indexDs.readFully(hWord);
             short firstSize = byteArrayToShort(hWord);
             byte[] firstBytes = new byte[firstSize];
             indexDs.readFully(firstBytes);
             String firstWord = new String(firstBytes, encoding);
-            keyBlockValues.firstLastKeys.add(firstWord);
+            dictionaryIndex.firstLastKeys.add(firstWord);
             indexDs.skip(1);
             //
             indexDs.readFully(hWord);
@@ -165,18 +168,19 @@ public class MdxParser {
             byte[] lastBytes = new byte[lastSize];
             indexDs.readFully(lastBytes);
             String lastWord = new String(lastBytes, encoding);
-            keyBlockValues.firstLastKeys.add(lastWord);
+            dictionaryIndex.firstLastKeys.add(lastWord);
             indexDs.skip(1);
             //
             indexDs.readFully(dWord);
-            keyBlockValues.compSize[i] = byteArrayToLong(dWord);
+            dictionaryIndex.compSize[i] = byteArrayToLong(dWord);
             indexDs.readFully(dWord);
-            keyBlockValues.decompSize[i] = byteArrayToLong(dWord);
+            dictionaryIndex.decompSize[i] = byteArrayToLong(dWord);
         }
     }
 
     private static void parseKeyBlocks(final MDInputStream mdInputStream, final Charset encoding,
-                                       final DictionaryIndex dictionaryIndex) throws MDException, IOException, DataFormatException {
+                                       final DictionaryIndex dictionaryIndex) throws MDException, IOException,
+            DataFormatException {
         // Key blocks
         // - plain format
         // +-----------------------------------------------------------------+
@@ -203,19 +207,26 @@ public class MdxParser {
         byte[] dWord = new byte[8];
         for (int i = 0; i < dictionaryIndex.keyNumBlocks; i++) {
             MDBlockInputStream blockIns = decompress(mdInputStream, dictionaryIndex.compSize[i], dictionaryIndex.decompSize[i]);
+            int b = blockIns.read();
             for (int j = 0; j < dictionaryIndex.numEntries[i]; j++) {
-                blockIns.readFully(dWord);
-                long off = byteArrayToLong(dWord);
-                byte[] keytextByte = blockIns.readAll();
-                String keytext = new String(keytextByte, encoding);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                for (int k = 0; k < 8; k++) {
+                    b = blockIns.read();
+                }
+                while (b != 0) {
+                    baos.write(b);
+                    b = blockIns.read();
+                }
+                String keytext = new String(baos.toByteArray(), encoding);
                 String keyName = getKeyName(dictionaryIndex.offsetMap, keytext);
-                dictionaryIndex.offsetMap.put(keyName, off);
                 dictionaryIndex.keyNameList.add(keyName);
+                dictionaryIndex.offsetMap.put(keyName, 0L);
             }
         }
     }
 
-    private static void parseRecordBlock(final MDInputStream mdInputStream, final Charset encoding, DictionaryIndex dictionaryIndex) throws IOException {
+    private static void parseRecordBlock(final MDInputStream mdInputStream, DictionaryIndex dictionaryIndex)
+            throws IOException {
         // Record block
         //  number of record blocks + number of entries +
         //  number of bytes of all lists +
@@ -262,20 +273,20 @@ public class MdxParser {
 
     private static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
                                                  final long decompSize) throws IOException, MDException, DataFormatException {
+        int flag = inputStream.read();
+        inputStream.skip(3);
         byte[] word = new byte[4];
-        inputStream.readFully(word);
-        int flag = byteArrayToInt(word, ByteOrder.LITTLE_ENDIAN);
         inputStream.readFully(word);
         long checksum = byteArrayToInt(word);
         switch(flag) {
             case 0:
                 break;
             case 1:
-                return new LzoBlockInputStream(inputStream, compSize, decompSize, checksum);
+                return new LzoBlockInputStream(inputStream, compSize - 8, decompSize, checksum);
             case 2:
-                return new ZlibBlockInputStream(inputStream, compSize, decompSize, checksum);
+                return new ZlibBlockInputStream(inputStream, compSize - 8, decompSize, checksum);
             default:
-                throw new MDException("Unknwn compression level.");
+                throw new MDException(String.format("Unknown compression level: %d", flag));
         }
         throw new MDException("Unsupported data.");
     }

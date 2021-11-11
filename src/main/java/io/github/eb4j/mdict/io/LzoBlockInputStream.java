@@ -18,19 +18,28 @@
 
 package io.github.eb4j.mdict.io;
 
-import java.nio.ByteBuffer;
+import io.github.eb4j.mdict.MDException;
+import org.anarres.lzo.LzoAlgorithm;
+import org.anarres.lzo.LzoDecompressor;
+import org.anarres.lzo.LzoLibrary;
+import org.anarres.lzo.lzo_uintp;
+
+import java.io.IOException;
 
 public class LzoBlockInputStream extends MDBlockInputStream {
 
-    public LzoBlockInputStream(final byte[] data) {
+    public LzoBlockInputStream(final MDInputStream inputStream, final long compSize, final long decompSize, final long checksum) throws IOException, MDException {
         super();
-        bytes = decompress(data);
-    }
-
-    public LzoBlockInputStream(final MDInputStream inputStream, final long compSize, final long decompSize, final long checksum) {
-    }
-
-    private ByteBuffer decompress(final byte[] data) {
-        return null;
+        byte[] input = new byte[(int) compSize];
+        inputStream.readFully(input);
+        LzoAlgorithm algorithm = LzoAlgorithm.LZO1X;
+        LzoDecompressor decompressor = LzoLibrary.getInstance().newDecompressor(algorithm, null);
+        byte[] output = new byte[(int) decompSize];
+        lzo_uintp out_len = new lzo_uintp();
+        decompressor.decompress(input, 0, (int) compSize, output, 0, out_len);
+        if (out_len.value != decompSize) {
+            throw new MDException("Decompression size is differ.");
+        }
+        bytes.put(output);
     }
 }

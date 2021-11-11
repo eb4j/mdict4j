@@ -30,10 +30,6 @@ public abstract class MDBlockInputStream {
         this.bytes = bytes;
     }
 
-    public MDBlockInputStream(final byte[] data) {
-        this(ByteBuffer.wrap(data));
-    }
-
     public void readFully(final byte[] b) {
         bytes.get(b);
     }
@@ -43,14 +39,8 @@ public abstract class MDBlockInputStream {
         bytes.get(ignore);
     }
 
-    public int remaining() {
-        return bytes.remaining();
-    }
-
-    public byte[] readAll() {
-        byte[] result = new byte[this.remaining()];
-        bytes.get(result);
-        return result;
+    public int read() {
+        return bytes.get();
     }
 
 }
