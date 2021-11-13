@@ -87,11 +87,13 @@ public final class MdxParser {
     static DictionaryIndex parseIndex(final MDInputStream mdInputStream, final DictionaryInfo info)
             throws MDException, IOException, DataFormatException {
         Charset encoding = Charset.forName(info.getEncoding());
+        boolean v2 = info.getRequiredEngineVersion().startsWith("2");
         mdInputStream.seek(info.getKeyBlockPosition());
-        return parseBlocks(mdInputStream, encoding);
+        return parseBlocks(mdInputStream, v2, encoding);
     }
 
-    private static DictionaryIndex parseBlocks(final MDInputStream mdInputStream, final Charset encoding)
+    private static DictionaryIndex parseBlocks(final MDInputStream mdInputStream, final boolean v2,
+                                               final Charset encoding)
             throws MDException, IOException, DataFormatException {
         // Key block
         // number of Key Blocks + number of entries
@@ -107,19 +109,24 @@ public final class MdxParser {
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
         long keySum = Utils.byteArrayToLong(dWord);
-        mdInputStream.readFully(dWord);
-        adler32.update(dWord);
-        long keyIndexDecompLen = Utils.byteArrayToLong(dWord);
+        long keyIndexDecompLen = 0L;
+        if (v2) {
+            mdInputStream.readFully(dWord);
+            adler32.update(dWord);
+            keyIndexDecompLen = Utils.byteArrayToLong(dWord);
+        }
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
         long keyIndexCompLen = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
         long keyBlocksLen = Utils.byteArrayToLong(dWord);
-        mdInputStream.readFully(word);
-        int checksum = Utils.byteArrayToInt(word);
-        if (adler32.getValue() != checksum) {
-            throw new MDException("checksum error.");
+        if (v2) {
+            mdInputStream.readFully(word);
+            int checksum = Utils.byteArrayToInt(word);
+            if (adler32.getValue() != checksum) {
+                throw new MDException("checksum error.");
+            }
         }
         // Key Block info
         //
@@ -135,7 +142,6 @@ public final class MdxParser {
         // | compressed size | decompressed size |
         // +-------------------------------------+
         //
-        MDBlockInputStream indexDs = Utils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen);
         int[] numEntries = new int[(int) keyNumBlocks];
         long[] keyCompSize = new long[(int) keyNumBlocks];
         long[] keyDecompSize = new long[(int) keyNumBlocks];
@@ -143,31 +149,63 @@ public final class MdxParser {
         List<String> lastKeys = new ArrayList<>();
         List<String> keyNameList = new ArrayList<>();
         long sum = 0;
-        for (int i = 0; i < keyNumBlocks; i++) {
-            indexDs.readFully(dWord);
-            numEntries[i] = (int) Utils.byteArrayToLong(dWord);
-            indexDs.readFully(hWord);
-            short firstSize = Utils.byteArrayToShort(hWord);
-            byte[] firstBytes = new byte[firstSize];
-            indexDs.readFully(firstBytes);
-            String firstWord = new String(firstBytes, encoding);
-            indexDs.skip(1);
-            //
-            indexDs.readFully(hWord);
-            short lastSize = Utils.byteArrayToShort(hWord);
-            byte[] lastBytes = new byte[lastSize];
-            indexDs.readFully(lastBytes);
-            String lastWord = new String(lastBytes, encoding);
-            indexDs.skip(1);
-            //
-            indexDs.readFully(dWord);
-            keyCompSize[i] = Utils.byteArrayToLong(dWord);
-            indexDs.readFully(dWord);
-            keyDecompSize[i] = Utils.byteArrayToLong(dWord);
-            //
-            sum += keyCompSize[i];
-            firstKeys.add(firstWord);
-            lastKeys.add(lastWord);
+        if (v2) {
+            MDBlockInputStream indexDs = Utils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen);
+            for (int i = 0; i < keyNumBlocks; i++) {
+                indexDs.readFully(dWord);
+                numEntries[i] = (int) Utils.byteArrayToLong(dWord);
+                indexDs.readFully(hWord);
+                short firstSize = Utils.byteArrayToShort(hWord);
+                byte[] firstBytes = new byte[firstSize];
+                indexDs.readFully(firstBytes);
+                String firstWord = new String(firstBytes, encoding);
+                indexDs.skip(1);
+                //
+                indexDs.readFully(hWord);
+                short lastSize = Utils.byteArrayToShort(hWord);
+                byte[] lastBytes = new byte[lastSize];
+                indexDs.readFully(lastBytes);
+                String lastWord = new String(lastBytes, encoding);
+                indexDs.skip(1);
+                //
+                indexDs.readFully(dWord);
+                keyCompSize[i] = Utils.byteArrayToLong(dWord);
+                indexDs.readFully(dWord);
+                keyDecompSize[i] = Utils.byteArrayToLong(dWord);
+                //
+                sum += keyCompSize[i];
+                firstKeys.add(firstWord);
+                lastKeys.add(lastWord);
+            }
+        } else {
+            for (int i = 0; i < keyNumBlocks; i++) {
+                byte[] b = new byte[1];
+                mdInputStream.readFully(dWord);
+                numEntries[i] = (int) Utils.byteArrayToLong(dWord);
+                mdInputStream.readFully(b);
+                int firstSize = b[0] & 0xff;
+                byte[] firstBytes = new byte[firstSize];
+                mdInputStream.readFully(firstBytes);
+                String firstWord = new String(firstBytes, encoding);
+                firstKeys.add(firstWord);
+                mdInputStream.skip(1);
+                //
+                mdInputStream.readFully(b);
+                int lastSize = b[0] & 0xff;
+                byte[] lastBytes = new byte[lastSize];
+                mdInputStream.readFully(lastBytes);
+                String lastWord = new String(lastBytes, encoding);
+                lastKeys.add(lastWord);
+                mdInputStream.skip(1);
+                //
+                mdInputStream.readFully(dWord);
+                keyCompSize[i] = Utils.byteArrayToLong(dWord);
+                mdInputStream.readFully(dWord);
+                keyDecompSize[i] = Utils.byteArrayToLong(dWord);
+                //
+                sum += keyCompSize[i];
+            }
+
         }
         if (sum != keyBlocksLen) {
             throw new MDException("Block size error.");
