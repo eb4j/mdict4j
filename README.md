@@ -1,9 +1,7 @@
 # MDict4J library
 
 MDict is one of popular dictionary formats.
-md4j, aka. MDict for Java, is a parser library for it.
-
-
+mdict4j is a parser library for MDict dictionary v2.
 
 ## License
 
