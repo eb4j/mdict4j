@@ -21,7 +21,10 @@ package io.github.eb4j.mdict;
 import io.github.eb4j.mdict.data.Dictionary;
 import io.github.eb4j.mdict.data.MDictEntry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hiroshi Miura

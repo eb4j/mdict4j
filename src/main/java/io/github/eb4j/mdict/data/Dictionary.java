@@ -30,25 +30,72 @@ import java.util.zip.DataFormatException;
 public class Dictionary {
     private final File mdxFile;
     private final File mddFile;
-    private final DictionaryInfo dictionaryInfo;
     private final DictionaryData<MDictEntry> dictionaryData;
+    private final String title;
+    private final String encoding;
+    private final String creationDate;
+    private final String format;
+    private final String description;
+    private final String styleSheet;
+    private final boolean encrypted;
+    private final boolean keyCaseSensitive;
 
-    public Dictionary(final DictionaryInfo info, final DictionaryData<MDictEntry> data, final File mdx, final File mdd) {
+    public Dictionary(final DictionaryInfo info, final DictionaryData<MDictEntry> data, final File mdx,
+                      final File mdd) {
         mdxFile = mdx;
         mddFile = mdd;
-        dictionaryInfo = info;
         dictionaryData = data;
+        title = info.getTitle();
+        encoding = info.getEncoding();
+        creationDate = info.getCreationDate();
+        format = info.getFormat();
+        description = info.getDescription();
+        styleSheet = info.getStyleSheet();
+        encrypted = "true".equalsIgnoreCase(info.getEncrypted());
+        keyCaseSensitive = "true".equalsIgnoreCase(info.getKeyCaseSensitive());
     }
 
     public Dictionary(final DictionaryInfo info, final DictionaryData<MDictEntry> data, final File mdxFile) {
         this(info, data, mdxFile, null);
     }
 
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isEncrypted() {
+        return encrypted;
+    }
+
+    public boolean isKeyCaseSensitive() {
+        return keyCaseSensitive;
+    }
+
+    public String getStyleSheet() {
+        return styleSheet;
+    }
+
     public List<Map.Entry<String, MDictEntry>> getEntries(final String word) {
         return dictionaryData.lookUp(word);
     }
 
-    public String getText(MDictEntry entry) {
+    public String getText(final MDictEntry entry) {
         return null;
     }
 
@@ -59,7 +106,7 @@ public class Dictionary {
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
         }
-        DictionaryData<MDictEntry> newData = new DictionaryData<>();
+        DictionaryDataBuilder<MDictEntry> newDataBuilder = new DictionaryDataBuilder<>();
         try {
             MDInputStream ras = new MDInputStream(mdxFile);
             info = MdxParser.parseHeader(ras);
@@ -71,12 +118,12 @@ public class Dictionary {
                 long offset = index.getRecordOffset(i);
                 long num = 0;
                 MDictEntry entry = new MDictEntry(offset, num);
-                newData.add(key, entry);
+                newDataBuilder.add(key, entry);
                 i++;
             }
         } catch (IOException | DataFormatException e) {
             throw new MDException("io error", e);
         }
-        return new Dictionary(info, newData , file);
+        return new Dictionary(info, newDataBuilder.build(), file);
     }
 }

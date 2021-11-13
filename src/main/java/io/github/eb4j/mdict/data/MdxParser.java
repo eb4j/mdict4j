@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
-public class MdxParser {
+public final class MdxParser {
     private MdxParser() {
     }
 
@@ -94,7 +94,8 @@ public class MdxParser {
         return dictionaryIndex;
     }
 
-    private static void parseKeyBlock(final MDInputStream mdInputStream, Charset encoding, DictionaryIndex dictionaryIndex)
+    private static void parseKeyBlock(final MDInputStream mdInputStream, final Charset encoding,
+                                      final DictionaryIndex dictionaryIndex)
             throws MDException, IOException, DataFormatException {
         // Key block
         // number of Key Blocks + number of entries
@@ -197,7 +198,8 @@ public class MdxParser {
         // +--------------------------------------------------+
         //
         for (int i = 0; i < dictionaryIndex.getKeyNumBlocks(); i++) {
-            MDBlockInputStream blockIns = decompress(mdInputStream, dictionaryIndex.getKeyCompSize(i), dictionaryIndex.getKeyDecompSize(i));
+            MDBlockInputStream blockIns = decompress(mdInputStream, dictionaryIndex.getKeyCompSize(i),
+                    dictionaryIndex.getKeyDecompSize(i));
             int b = blockIns.read();
             for (int j = 0; j < dictionaryIndex.getNumEntries(i); j++) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -227,7 +229,7 @@ public class MdxParser {
         }
     }
 
-    private static void parseRecordBlock(final MDInputStream mdInputStream, DictionaryIndex dictionaryIndex)
+    private static void parseRecordBlock(final MDInputStream mdInputStream, final DictionaryIndex dictionaryIndex)
             throws IOException, MDException {
         // Record block
         //  number of record blocks + number of entries +
@@ -264,13 +266,14 @@ public class MdxParser {
     }
 
     private static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
-                                                 final long decompSize) throws IOException, MDException, DataFormatException {
+                                                 final long decompSize)
+            throws IOException, MDException, DataFormatException {
         int flag = inputStream.read();
         inputStream.skip(3);
         byte[] word = new byte[4];
         inputStream.readFully(word);
         long checksum = byteArrayToInt(word);
-        switch(flag) {
+        switch (flag) {
             case 0:
                 break;
             case 1:
@@ -283,21 +286,21 @@ public class MdxParser {
         throw new MDException("Unsupported data.");
     }
 
-    private static long byteArrayToLong(byte[] dWord) {
+    private static long byteArrayToLong(final byte[] dWord) {
         ByteBuffer buffer = ByteBuffer.wrap(dWord).order(ByteOrder.BIG_ENDIAN);
         return buffer.getLong();
     }
 
-    private static int byteArrayToInt(byte[] word, final ByteOrder byteOrder) {
+    private static int byteArrayToInt(final byte[] word, final ByteOrder byteOrder) {
         ByteBuffer buffer = ByteBuffer.wrap(word).order(byteOrder);
         return buffer.getInt();
     }
 
-    private static int byteArrayToInt(byte[] word) {
+    private static int byteArrayToInt(final byte[] word) {
         return byteArrayToInt(word, ByteOrder.BIG_ENDIAN);
     }
 
-    private static short byteArrayToShort(byte[] hWord) {
+    private static short byteArrayToShort(final byte[] hWord) {
         ByteBuffer buffer = ByteBuffer.wrap(hWord).order(ByteOrder.BIG_ENDIAN);
         return buffer.getShort();
     }

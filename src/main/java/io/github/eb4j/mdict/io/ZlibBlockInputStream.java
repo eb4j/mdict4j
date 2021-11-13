@@ -20,14 +20,10 @@ package io.github.eb4j.mdict.io;
 
 import io.github.eb4j.mdict.MDException;
 
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-import java.util.zip.InflaterOutputStream;
 
 public class ZlibBlockInputStream extends MDBlockInputStream implements AutoCloseable {
 

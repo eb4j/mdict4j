@@ -24,7 +24,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 
 @JacksonXmlRootElement(localName = "Dictionary")
-public class DictionaryInfo {
+public final class DictionaryInfo {
     @JacksonXmlProperty(localName = "GeneratedByEngineVersion", isAttribute = true)
     private String generatedByEngineVersion;
     @JacksonXmlProperty(localName = "RequiredEngineVersion", isAttribute = true)

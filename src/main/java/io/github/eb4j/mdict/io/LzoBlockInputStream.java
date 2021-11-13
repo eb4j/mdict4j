@@ -28,16 +28,17 @@ import java.io.IOException;
 
 public class LzoBlockInputStream extends MDBlockInputStream {
 
-    public LzoBlockInputStream(final MDInputStream inputStream, final long compSize, final long decompSize, final long checksum) throws IOException, MDException {
+    public LzoBlockInputStream(final MDInputStream inputStream, final long compSize, final long decompSize,
+                               final long checksum) throws IOException, MDException {
         super();
         byte[] input = new byte[(int) compSize];
         inputStream.readFully(input);
         LzoAlgorithm algorithm = LzoAlgorithm.LZO1X;
         LzoDecompressor decompressor = LzoLibrary.getInstance().newDecompressor(algorithm, null);
         byte[] output = new byte[(int) decompSize];
-        lzo_uintp out_len = new lzo_uintp();
-        decompressor.decompress(input, 0, (int) compSize, output, 0, out_len);
-        if (out_len.value != decompSize) {
+        lzo_uintp outLen = new lzo_uintp();
+        decompressor.decompress(input, 0, (int) compSize, output, 0, outLen);
+        if (outLen.value != decompSize) {
             throw new MDException("Decompression size is differ.");
         }
         bytes.put(output);

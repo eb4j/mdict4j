@@ -19,9 +19,6 @@
 package io.github.eb4j.mdict.data;
 
 import io.github.eb4j.mdict.MDException;
-import io.github.eb4j.mdict.data.DictionaryIndex;
-import io.github.eb4j.mdict.data.DictionaryInfo;
-import io.github.eb4j.mdict.data.MdxParser;
 import io.github.eb4j.mdict.io.MDInputStream;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +28,7 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.zip.DataFormatException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MdxParserTest {
 

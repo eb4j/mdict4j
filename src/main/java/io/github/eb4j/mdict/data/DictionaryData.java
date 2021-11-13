@@ -21,7 +21,6 @@ package io.github.eb4j.mdict.data;
 
 import org.trie4j.MapTrie;
 import org.trie4j.doublearray.MapDoubleArray;
-import org.trie4j.patricia.MapPatriciaTrie;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -33,8 +32,6 @@ import java.util.Map.Entry;
  * A class that encapsulates the storage and retrieval of string-keyed data.
  * Usage:
  * <ol>
- * <li>Instantiate and insert data with {@link #add(String, Object)}
- * <li>Call {@link #done()} when done adding data (required!)
  * <li>Retrieve data with {@link #lookUp(String)}
  * </ol>
  *
@@ -43,81 +40,16 @@ import java.util.Map.Entry;
  * @param <T>
  *            The type of data stored
  */
-public class DictionaryData<T> {
+public final class DictionaryData<T> {
 
-    private MapDoubleArray<Object> data;
-    private MapTrie<Object> temp;
+    private final MapDoubleArray<Object> data;
 
     /**
      * POJO class to hold dictionary data.
+     * @param trie source Trie object.
      */
-    public DictionaryData() {
-        this.temp = new MapPatriciaTrie<>();
-    }
-
-    /**
-     * Insert a key=value pair into the data store. Unicode normalization is
-     * performed on the key. The value is stored both for the key and its
-     * lowercase version, if the latter differs.
-     *
-     * @param key
-     *            The key
-     * @param value
-     *            The value
-     */
-    public void add(final String key, final T value) {
-        // key = normalizeUnicode(key);
-        doAdd(key, value);
-        String lowerKey = key.toLowerCase();
-        // String lowerKey = key.toLowerCase(language.getLocale());
-        if (!key.equals(lowerKey)) {
-            doAdd(lowerKey, value);
-        }
-    }
-
-    /**
-     * Do the actual storing of the value. Most values are going to be singular,
-     * but dictionaries may store multiple definitions for the same key, so in
-     * that case we store the values in an array.
-     *
-     * @param key
-     * @param value
-     */
-    private void doAdd(final String key, final T value) {
-        Object stored = temp.get(key);
-        if (stored == null) {
-            temp.insert(key, value);
-        } else {
-            if (stored instanceof Object[]) {
-                stored = extendArray((Object[]) stored, value);
-            } else {
-                stored = new Object[] {stored, value};
-            }
-            temp.put(key, stored);
-        }
-    }
-
-    /**
-     * Return the given array with the given value appended to it.
-     *
-     * @param array
-     * @param value
-     * @return
-     */
-    Object[] extendArray(final Object[] array, final Object value) {
-        Object[] newArray = new Object[array.length + 1];
-        System.arraycopy(array, 0, newArray, 0, array.length);
-        newArray[newArray.length - 1] = value;
-        return newArray;
-    }
-
-    /**
-     * Finalize the data store. This is <strong>required</strong> to be called
-     * before any lookups can be performed.
-     */
-    public void done() {
-        data = new MapDoubleArray<>(temp);
-        temp = null;
+    public DictionaryData(final MapTrie<Object> trie) {
+        data = new MapDoubleArray<>(trie);
     }
 
     /**
@@ -126,8 +58,6 @@ public class DictionaryData<T> {
      * @param word
      *            The word to look up
      * @return A list of stored objects matching the given word
-     * @throws IllegalStateException
-     *             If {@link #done()} has not yet been called
      */
     public List<Entry<String, T>> lookUp(final String word) throws IllegalStateException {
         return doLookUpWithLowerCase(word, false);
@@ -140,8 +70,6 @@ public class DictionaryData<T> {
      * @param word
      *            The word to look up
      * @return A list of stored objects matching the given word
-     * @throws IllegalStateException
-     *             If {@link #done()} has not yet been called
      */
     public List<Entry<String, T>> lookUpPredictive(final String word) throws IllegalStateException {
         return doLookUpWithLowerCase(word, true);
@@ -194,15 +122,11 @@ public class DictionaryData<T> {
     }
 
     /**
-     * Get the number of stored keys. Returns <code>-1</code> if {@link #done()}
-     * has not yet been called.
+     * Get the number of stored keys.
      *
      * @return The number of stored keys
      */
     public int size() {
-        if (data == null) {
-            return -1;
-        }
         return data.size();
     }
 }

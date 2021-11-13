@@ -22,7 +22,7 @@ public class Result {
     private final String text;
     private final String heading;
 
-    public Result( final String heading, final String text) {
+    public Result(final String heading, final String text) {
         this.text = text;
         this.heading = heading;
     }

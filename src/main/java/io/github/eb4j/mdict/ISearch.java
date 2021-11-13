@@ -20,7 +20,7 @@ package io.github.eb4j.mdict;
 
 public interface ISearch {
 
-    void search(final String words) throws MDException;
+    void search(String words) throws MDException;
 
     Result getNextResult() throws MDException;
 }

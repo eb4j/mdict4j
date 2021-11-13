@@ -45,7 +45,7 @@ class DictionaryIndex {
     /**
      * constructor.
      */
-    public DictionaryIndex() {
+    DictionaryIndex() {
     }
 
     /**
@@ -75,18 +75,18 @@ class DictionaryIndex {
     /*
       These methods are used only from parser.
      */
-    void initKeyNum(final int keyNumBlocks) {
-        this.keyNumBlocks = keyNumBlocks;
-        keyCompSize = new long[keyNumBlocks];
-        keyDecompSize = new long[keyNumBlocks];
-        numEntries = new int[keyNumBlocks];
+    void initKeyNum(final int blocks) {
+        keyNumBlocks = blocks;
+        keyCompSize = new long[blocks];
+        keyDecompSize = new long[blocks];
+        numEntries = new int[blocks];
     }
 
-    void initRecordNum(final int recordNumBlocks, final long recordNumEntries, final long offsetBase) {
-        this.recordNumEntries = recordNumEntries;
-        recordCompSize = new long[recordNumBlocks];
-        recordDecompSize = new long[recordNumBlocks];
-        recordOffsets = new long[recordNumBlocks];
+    void initRecordNum(final int numBlocks, final long nEntries, final long offsetBase) {
+        recordNumEntries = nEntries;
+        recordCompSize = new long[numBlocks];
+        recordDecompSize = new long[numBlocks];
+        recordOffsets = new long[numBlocks];
         recordOffset = offsetBase;
     }
 
@@ -138,5 +138,9 @@ class DictionaryIndex {
 
     int getNumEntries(final int i) {
         return numEntries[i];
+    }
+
+    public long getRecordNumEntries() {
+        return recordNumEntries;
     }
 }
