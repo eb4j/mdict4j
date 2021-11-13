@@ -85,15 +85,16 @@ public final class MdxParser {
         Charset encoding = Charset.forName(info.getEncoding());
         String requiredVersion = info.getRequiredEngineVersion();
         boolean v2 = !requiredVersion.startsWith("1");
-        if (!"0".equals(info.getEncrypted())) {
-            throw new MDException("Unsupported encrypted file detected.");
+        if (info.getEncrypted().equals("3")) {
+            throw new MDException("Unknown encryption algorithm found.");
         }
+        boolean encrypted = "2".equals(info.getEncrypted());
         mdInputStream.seek(info.getKeyBlockPosition());
-        return parseBlocks(mdInputStream, v2, encoding);
+        return parseBlocks(mdInputStream, v2, encoding, encrypted);
     }
 
     private static DictionaryIndex parseBlocks(final MDInputStream mdInputStream, final boolean v2,
-                                               final Charset encoding)
+                                               final Charset encoding, final boolean encrypted)
             throws MDException, IOException, DataFormatException {
         // Key block
         // number of Key Blocks + number of entries
@@ -160,7 +161,7 @@ public final class MdxParser {
         List<String> keyNameList = new ArrayList<>();
         long sum = 0;
         if (v2) {
-            MDBlockInputStream indexDs = Utils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen);
+            MDBlockInputStream indexDs = Utils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen, encrypted);
             for (int i = 0; i < keyNumBlocks; i++) {
                 indexDs.readFully(dWord);
                 numEntries[i] = (int) Utils.byteArrayToLong(dWord);
@@ -242,7 +243,7 @@ public final class MdxParser {
         // +--------------------------------------------------+
         //
         for (int i = 0; i < keyNumBlocks; i++) {
-            MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i]);
+            MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i], false);
             int b = blockIns.read();
             for (int j = 0; j < numEntries[i]; j++) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();

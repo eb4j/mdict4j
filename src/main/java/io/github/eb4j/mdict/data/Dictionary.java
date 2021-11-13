@@ -107,7 +107,7 @@ public class Dictionary {
         long entryIndex = mDictEntry.getEntryIndex();
         long compSize = dictionaryIndex.getRecordCompSize(blockNumber);
         long decompSize = dictionaryIndex.getRecordDecompSize(blockNumber);
-        try (MDBlockInputStream decompressedStream = Utils.decompress(mdInputStream, compSize, decompSize);
+        try (MDBlockInputStream decompressedStream = Utils.decompress(mdInputStream, compSize, decompSize, false);
              BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream),
                     (int) decompSize)) {
             int i = 0;

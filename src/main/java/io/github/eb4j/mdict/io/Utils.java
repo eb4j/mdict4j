@@ -23,21 +23,30 @@ import org.anarres.lzo.LzoAlgorithm;
 import org.anarres.lzo.LzoDecompressor;
 import org.anarres.lzo.LzoLibrary;
 import org.anarres.lzo.lzo_uintp;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 public final class Utils {
 
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     private Utils() {
     }
 
     public static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
-                                                  final long decompSize)
+                                                  final long decompSize, final boolean encrypted)
             throws IOException, MDException, DataFormatException {
         int flag = inputStream.read();
         inputStream.skip(3);
@@ -64,9 +73,18 @@ public final class Utils {
             case 2:
                 input = new byte[(int) compSize - 8];
                 output = new byte[(int) decompSize];
-                Inflater inflater = new Inflater();
                 inputStream.readFully(input);
-                inflater.setInput(input);
+                Inflater inflater = new Inflater();
+                if (encrypted) {
+                    try {
+                        byte[] decrypted = decrypt(input);
+                        inflater.setInput(decrypted);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new MDException("Decryption failed.", e);
+                    }
+                } else {
+                    inflater.setInput(input);
+                }
                 int size = inflater.inflate(output);
                 if (checksum != inflater.getAdler()) {
                     throw new MDException("checksum error");
@@ -80,6 +98,26 @@ public final class Utils {
                 throw new MDException(String.format("Unknown compression level: %d", flag));
         }
         throw new MDException("Unsupported data.");
+    }
+
+    public static byte[] decrypt(final byte[] buffer)
+            throws NoSuchAlgorithmException {
+        byte[] result = buffer.clone();
+        MessageDigest messageDigest = MessageDigest.getInstance("RIPEMD128");
+        byte[] salt = Arrays.copyOfRange(buffer, 4, 4);
+        messageDigest.update(salt);
+        byte[] phrase = new byte[] {(byte)0x95, 0x36, 0x00, 0x00};
+        messageDigest.update(phrase);
+        byte[] key = messageDigest.digest();
+        int prev = 0x36;
+        for (int i = 0; i < buffer.length - 8; i++) {
+            int b = buffer[i + 8];
+            b = (b >> 4) | (b << 4);
+            b = b ^ prev ^ (i & 0xff) ^ key[i % 16];
+            prev = buffer[i + 8];
+            result[i] = (byte)b;
+        }
+        return result;
     }
 
     public static long byteArrayToLong(final byte[] dWord) {
