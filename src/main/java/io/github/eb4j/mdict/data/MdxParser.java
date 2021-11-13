@@ -144,9 +144,10 @@ public class MdxParser {
         long sum = 0;
         long compSize;
         long decompSize;
-        for (int i = 0; i < dictionaryIndex.keyNumBlocks; i++) {
+        long numEntries;
+        for (int i = 0; i < dictionaryIndex.getKeyNumBlocks(); i++) {
             indexDs.readFully(dWord);
-            dictionaryIndex.numEntries[i] = byteArrayToLong(dWord);
+            numEntries = byteArrayToLong(dWord);
             indexDs.readFully(hWord);
             short firstSize = byteArrayToShort(hWord);
             byte[] firstBytes = new byte[firstSize];
@@ -160,15 +161,15 @@ public class MdxParser {
             indexDs.readFully(lastBytes);
             String lastWord = new String(lastBytes, encoding);
             indexDs.skip(1);
-            dictionaryIndex.firstLastKeys.add(firstWord);
-            dictionaryIndex.firstLastKeys.add(lastWord);
             //
             indexDs.readFully(dWord);
             compSize = byteArrayToLong(dWord);
             indexDs.readFully(dWord);
             decompSize = byteArrayToLong(dWord);
+            //
             sum += compSize;
-            dictionaryIndex.setKeySizes(i, compSize, decompSize);
+            dictionaryIndex.addFirstLastKeys(i, firstWord, lastWord);
+            dictionaryIndex.setKeySizes(i, (int) numEntries, compSize, decompSize);
         }
         if (sum != keyBlocksLen) {
             throw new MDException("Block size error.");
@@ -196,10 +197,10 @@ public class MdxParser {
         // | key id | key text                            |00 |
         // +--------------------------------------------------+
         //
-        for (int i = 0; i < dictionaryIndex.keyNumBlocks; i++) {
+        for (int i = 0; i < dictionaryIndex.getKeyNumBlocks(); i++) {
             MDBlockInputStream blockIns = decompress(mdInputStream, dictionaryIndex.getKeyCompSize(i), dictionaryIndex.getKeyDecompSize(i));
             int b = blockIns.read();
-            for (int j = 0; j < dictionaryIndex.numEntries[i]; j++) {
+            for (int j = 0; j < dictionaryIndex.getNumEntries(i); j++) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 for (int k = 0; k < 8; k++) {
                     b = blockIns.read();

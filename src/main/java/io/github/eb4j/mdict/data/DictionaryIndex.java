@@ -18,19 +18,18 @@
 
 package io.github.eb4j.mdict.data;
 
-import io.github.eb4j.mdict.MDException;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class DictionaryIndex {
-    final List<String> keyNameList = new ArrayList<>();
-    public final List<String> firstLastKeys = new ArrayList<>();
+    private final List<String> keyNameList = new ArrayList<>();
+    private final List<String> firstKeys = new ArrayList<>();
+    private final List<String> lastKeys = new ArrayList<>();
 
-    int keyNumBlocks;
+    private int keyNumBlocks;
     private long[] keyCompSize;
     private long[] keyDecompSize;
-    long[] numEntries;
+    private int[] numEntries;
 
     private long[] recordCompSize;
     private long[] recordDecompSize;
@@ -42,16 +41,25 @@ public class DictionaryIndex {
 
     void initKeyNum(final int keyNumBlocks) {
         this.keyNumBlocks = keyNumBlocks;
-        keyCompSize = new long[(int) keyNumBlocks];
-        keyDecompSize = new long[(int) keyNumBlocks];
-        numEntries = new long[(int) keyNumBlocks];
+        keyCompSize = new long[keyNumBlocks];
+        keyDecompSize = new long[keyNumBlocks];
+        numEntries = new int[keyNumBlocks];
     }
 
     void initRecordNum(final int recordNumBlocks, final long offsetBase) {
-        recordCompSize = new long[(int) recordNumBlocks];
-        recordDecompSize = new long[(int) recordNumBlocks];
-        recordOffsets = new long[(int) recordNumBlocks];
+        recordCompSize = new long[recordNumBlocks];
+        recordDecompSize = new long[recordNumBlocks];
+        recordOffsets = new long[recordNumBlocks];
         recordOffset = offsetBase;
+    }
+
+    public int getKeyNumBlocks() {
+        return keyNumBlocks;
+    }
+
+    void addFirstLastKeys(final int index, final String firstKey, final String lastKey) {
+        firstKeys.add(firstKey);
+        lastKeys.add(lastKey);
     }
 
     void addRecordSizes(final int index, final long compSize, final long decmpSize) {
@@ -97,7 +105,8 @@ public class DictionaryIndex {
         return recordDecompSize[index];
     }
 
-    public void setKeySizes(final int i, final long compSize, final long decompSize) {
+    public void setKeySizes(final int i, final int numEntry, final long compSize, final long decompSize) {
+        numEntries[i] = numEntry;
         keyCompSize[i] = compSize;
         keyDecompSize[i] = decompSize;
     }
@@ -108,5 +117,9 @@ public class DictionaryIndex {
 
     public long getKeyCompSize(final int i) {
         return keyCompSize[i];
+    }
+
+    public int getNumEntries(final int i) {
+        return numEntries[i];
     }
 }
