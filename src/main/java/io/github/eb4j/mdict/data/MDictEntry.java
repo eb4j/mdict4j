@@ -18,8 +18,6 @@
 
 package io.github.eb4j.mdict.data;
 
-import io.github.eb4j.mdict.Dictionary;
-
 import java.util.Objects;
 
 public class MDictEntry {

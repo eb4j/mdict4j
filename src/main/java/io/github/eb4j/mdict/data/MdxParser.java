@@ -32,7 +32,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -46,7 +45,7 @@ public class MdxParser {
      * @return DictionaryInfo object.
      * @throws MDException when read or parse error.
      */
-    public static DictionaryInfo parseHeader(final MDInputStream inputStream) throws MDException {
+    static DictionaryInfo parseHeader(final MDInputStream inputStream) throws MDException {
         byte[] word = new byte[4];
         DictionaryInfo dictionaryInfo;
         try {
@@ -85,7 +84,7 @@ public class MdxParser {
      * @return DictionaryIndex object.
      * @throws MDException when read or parse error.
      */
-    public static DictionaryIndex parseIndex(final MDInputStream mdInputStream, final DictionaryInfo info)
+    static DictionaryIndex parseIndex(final MDInputStream mdInputStream, final DictionaryInfo info)
             throws MDException, IOException, DataFormatException {
         DictionaryIndex dictionaryIndex = new DictionaryIndex();
         Charset encoding = Charset.forName(info.getEncoding());
@@ -247,7 +246,8 @@ public class MdxParser {
         long recordBlockLen = byteArrayToLong(dWord);
         long offset = mdInputStream.tell() + recordIndexLen;
         long endOffset = offset + recordBlockLen;
-        dictionaryIndex.initRecordNum((int) recordNumBlocks, offset);
+        //
+        dictionaryIndex.initRecordNum((int) recordNumBlocks, recordNumEntries, offset);
         long recordBlockCompSize;
         long recordBlockDecompSize;
         for (int i = 0; i < recordNumBlocks; i++) {
@@ -255,6 +255,7 @@ public class MdxParser {
             recordBlockCompSize = byteArrayToLong(dWord);
             mdInputStream.readFully(dWord);
             recordBlockDecompSize = byteArrayToLong(dWord);
+            //
             dictionaryIndex.addRecordSizes(i, recordBlockCompSize, recordBlockDecompSize);
         }
         if (dictionaryIndex.endRecordOffset() != endOffset) {

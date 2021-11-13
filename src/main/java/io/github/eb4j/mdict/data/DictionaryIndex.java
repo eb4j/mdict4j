@@ -21,24 +21,60 @@ package io.github.eb4j.mdict.data;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DictionaryIndex {
+class DictionaryIndex {
     private final List<String> keyNameList = new ArrayList<>();
+    /*
+      Size of these lists is keyNumBlocks.
+     */
+    private int keyNumBlocks;
     private final List<String> firstKeys = new ArrayList<>();
     private final List<String> lastKeys = new ArrayList<>();
-
-    private int keyNumBlocks;
     private long[] keyCompSize;
     private long[] keyDecompSize;
     private int[] numEntries;
-
+    /*
+      Size of these lists is recordNumBlocks.
+     */
     private long[] recordCompSize;
     private long[] recordDecompSize;
     private long[] recordOffsets;
+    private long recordNumEntries;
+    //
     private long recordOffset;
 
+    /**
+     * constructor.
+     */
     public DictionaryIndex() {
     }
 
+    /**
+     * Number of keys that dictionary has.
+     * @return
+     */
+    long keySize() {
+        return keyNameList.size();
+    }
+
+    String getKeyName(final int index) {
+        return keyNameList.get(index);
+    }
+
+    long getRecordOffset(final int index) {
+        return recordOffsets[index];
+    }
+
+    long getRecordCompSize(final int index) {
+        return recordCompSize[index];
+    }
+
+    long getRecordDecompSize(final int index) {
+        return recordDecompSize[index];
+    }
+
+    /*
+      These methods are used only from parser.
+     */
     void initKeyNum(final int keyNumBlocks) {
         this.keyNumBlocks = keyNumBlocks;
         keyCompSize = new long[keyNumBlocks];
@@ -46,14 +82,15 @@ public class DictionaryIndex {
         numEntries = new int[keyNumBlocks];
     }
 
-    void initRecordNum(final int recordNumBlocks, final long offsetBase) {
+    void initRecordNum(final int recordNumBlocks, final long recordNumEntries, final long offsetBase) {
+        this.recordNumEntries = recordNumEntries;
         recordCompSize = new long[recordNumBlocks];
         recordDecompSize = new long[recordNumBlocks];
         recordOffsets = new long[recordNumBlocks];
         recordOffset = offsetBase;
     }
 
-    public int getKeyNumBlocks() {
+    int getKeyNumBlocks() {
         return keyNumBlocks;
     }
 
@@ -73,10 +110,6 @@ public class DictionaryIndex {
         return recordOffset;
     }
 
-    public long keySize() {
-        return keyNameList.size();
-    }
-
     boolean keyContainsName(final String name) {
         return keyNameList.contains(name);
     }
@@ -85,41 +118,25 @@ public class DictionaryIndex {
         keyNameList.add(name);
     }
 
-    public String getKeyName(final int index) {
-        return keyNameList.get(index);
-    }
-
     long keyNameSize() {
         return keyNameList.size();
     }
 
-    public long getRecordOffset(final int index) {
-        return recordOffsets[index];
-    }
-
-    public long getRecordCompSize(final int index) {
-        return recordCompSize[index];
-    }
-
-    public long getRecordDecompSize(final int index) {
-        return recordDecompSize[index];
-    }
-
-    public void setKeySizes(final int i, final int numEntry, final long compSize, final long decompSize) {
+    void setKeySizes(final int i, final int numEntry, final long compSize, final long decompSize) {
         numEntries[i] = numEntry;
         keyCompSize[i] = compSize;
         keyDecompSize[i] = decompSize;
     }
 
-    public long getKeyDecompSize(final int i) {
+    long getKeyDecompSize(final int i) {
         return keyDecompSize[i];
     }
 
-    public long getKeyCompSize(final int i) {
+    long getKeyCompSize(final int i) {
         return keyCompSize[i];
     }
 
-    public int getNumEntries(final int i) {
+    int getNumEntries(final int i) {
         return numEntries[i];
     }
 }

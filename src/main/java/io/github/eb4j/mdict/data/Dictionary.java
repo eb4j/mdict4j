@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict;
+package io.github.eb4j.mdict.data;
 
-import io.github.eb4j.mdict.data.*;
+import io.github.eb4j.mdict.MDException;
 import io.github.eb4j.mdict.io.MDInputStream;
 
 import java.io.File;

@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict;
+package io.github.eb4j.mdict.data;
 
+import io.github.eb4j.mdict.MDException;
 import io.github.eb4j.mdict.data.DictionaryIndex;
 import io.github.eb4j.mdict.data.DictionaryInfo;
 import io.github.eb4j.mdict.data.MdxParser;
@@ -54,5 +55,9 @@ class MdxParserTest {
         info.setEncoding("UTF-8");
         DictionaryIndex index = MdxParser.parseIndex(inputStream, info);
         assertEquals(81, index.keySize());
+        assertEquals(3289, index.getRecordCompSize(0));
+        assertEquals(6422, index.getRecordDecompSize(0));
+        assertEquals(1331, index.getRecordOffset(0));
+        assertEquals(1, index.getKeyNumBlocks());
     }
 }

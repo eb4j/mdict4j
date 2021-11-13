@@ -18,6 +18,7 @@
 
 package io.github.eb4j.mdict;
 
+import io.github.eb4j.mdict.data.Dictionary;
 import io.github.eb4j.mdict.data.MDictEntry;
 
 import java.util.*;
@@ -27,7 +28,7 @@ import java.util.*;
  */
 public class Searcher implements ISearch {
 
-    private final Dictionary dictionary;
+    private final io.github.eb4j.mdict.data.Dictionary dictionary;
     private final List<Map.Entry<String, MDictEntry>> entries = new ArrayList<>();
     private Iterator<Map.Entry<String, MDictEntry>> iterator;
 
