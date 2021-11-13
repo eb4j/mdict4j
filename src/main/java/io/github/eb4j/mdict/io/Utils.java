@@ -29,10 +29,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -43,6 +45,51 @@ public final class Utils {
     }
 
     private Utils() {
+    }
+
+    public static long readLong(final MDInputStream mdInputStream) throws IOException {
+        byte[] dWord = new byte[8];
+        mdInputStream.readFully(dWord);
+        return byteArrayToLong(dWord);
+    }
+
+    public static long readLong(final MDInputStream mdInputStream, final Adler32 adler32) throws IOException {
+        byte[] dWord = new byte[8];
+        mdInputStream.readFully(dWord);
+        adler32.update(dWord);
+        return byteArrayToLong(dWord);
+    }
+
+    public static long readLong(final MDBlockInputStream mdInputStream) throws IOException {
+        byte[] dWord = new byte[8];
+        mdInputStream.readFully(dWord);
+        return byteArrayToLong(dWord);
+    }
+
+    public static int readByte(final MDInputStream mdInputStream) throws IOException {
+        byte[] b = new byte[1];
+        mdInputStream.readFully(b);
+        return b[0] & 0xff;
+    }
+
+    public static short readShort(final MDBlockInputStream mdBlockInputStream) throws IOException {
+        byte[] bytes = new byte[2];
+        mdBlockInputStream.readFully(bytes);
+        return byteArrayToShort(bytes);
+    }
+
+    public static String readString(final MDBlockInputStream mdInputStream, final int size, final Charset encoding)
+            throws IOException {
+        byte[] bytes = new byte[size];
+        mdInputStream.readFully(bytes);
+        return new String(bytes, encoding);
+    }
+
+    public static String readString(final MDInputStream mdInputStream, final int size, final Charset encoding)
+            throws IOException {
+        byte[] bytes = new byte[size];
+        mdInputStream.readFully(bytes);
+        return new String(bytes, encoding);
     }
 
     public static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
@@ -106,7 +153,7 @@ public final class Utils {
         MessageDigest messageDigest = MessageDigest.getInstance("RIPEMD128");
         byte[] salt = Arrays.copyOfRange(buffer, 4, 4);
         messageDigest.update(salt);
-        byte[] phrase = new byte[] {(byte)0x95, 0x36, 0x00, 0x00};
+        byte[] phrase = new byte[] {(byte) 0x95, 0x36, 0x00, 0x00};
         messageDigest.update(phrase);
         byte[] key = messageDigest.digest();
         int prev = 0x36;
@@ -115,7 +162,7 @@ public final class Utils {
             b = (b >> 4) | (b << 4);
             b = b ^ prev ^ (i & 0xff) ^ key[i % 16];
             prev = buffer[i + 8];
-            result[i] = (byte)b;
+            result[i] = (byte) b;
         }
         return result;
     }

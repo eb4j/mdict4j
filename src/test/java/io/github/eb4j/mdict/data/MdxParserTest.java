@@ -36,7 +36,8 @@ class MdxParserTest {
     void parseTestHeader() throws FileNotFoundException, URISyntaxException, MDException {
         MDInputStream inputStream = new MDInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
-        DictionaryInfo dictionaryInfo = MdxParser.parseHeader(inputStream);
+        MdxParser parser = new MdxParser(inputStream);
+        DictionaryInfo dictionaryInfo = parser.parseHeader();
         assertEquals("Html", dictionaryInfo.getFormat());
         assertEquals("2.0", dictionaryInfo.getRequiredEngineVersion());
         assertEquals(630, dictionaryInfo.getKeyBlockPosition());
@@ -47,12 +48,9 @@ class MdxParserTest {
     void parseTestIndex() throws MDException, URISyntaxException, IOException, DataFormatException {
         MDInputStream inputStream = new MDInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
-        DictionaryInfo info = new DictionaryInfo();
-        info.setKeyBlockPosition(630);
-        info.setEncoding("UTF-8");
-        info.setRequiredEngineVersion("2.0");
-        info.setEncrypted("0");
-        DictionaryIndex index = MdxParser.parseIndex(inputStream, info);
+        MdxParser parser = new MdxParser(inputStream);
+        parser.parseHeader();
+        DictionaryIndex index = parser.parseIndex();
         assertEquals(81, index.keySize());
         assertEquals(3289, index.getRecordCompSize(0));
         assertEquals(6422, index.getRecordDecompSize(0));

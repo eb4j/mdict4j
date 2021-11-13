@@ -25,7 +25,7 @@ import java.io.InputStream;
 public class MDBlockInputStream extends InputStream {
     protected final ByteArrayInputStream byteArrayInputStream;
 
-    public MDBlockInputStream(ByteArrayInputStream byteArrayInputStream) {
+    public MDBlockInputStream(final ByteArrayInputStream byteArrayInputStream) {
         this.byteArrayInputStream = byteArrayInputStream;
     }
 

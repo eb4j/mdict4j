@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
@@ -107,14 +108,15 @@ public class Dictionary {
         long entryIndex = mDictEntry.getEntryIndex();
         long compSize = dictionaryIndex.getRecordCompSize(blockNumber);
         long decompSize = dictionaryIndex.getRecordDecompSize(blockNumber);
+        Charset cs = Charset.forName(encoding);
         try (MDBlockInputStream decompressedStream = Utils.decompress(mdInputStream, compSize, decompSize, false);
-             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream),
+             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, cs),
                     (int) decompSize)) {
             int i = 0;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 if (i == entryIndex) {
-                    result = line.substring(0, line.length());
+                    result = line;
                 }
                 i++;
             }
@@ -135,8 +137,9 @@ public class Dictionary {
         MDInputStream mdInputStream;
         try {
             mdInputStream = new MDInputStream(mdxFile);
-            info = MdxParser.parseHeader(mdInputStream);
-            index = MdxParser.parseIndex(mdInputStream, info);
+            MdxParser parser = new MdxParser(mdInputStream);
+            info = parser.parseHeader();
+            index = parser.parseIndex();
             int keySize = (int) index.keySize();
             int recordEntries = (int) index.getRecordNumEntries();
             if (keySize != recordEntries) {

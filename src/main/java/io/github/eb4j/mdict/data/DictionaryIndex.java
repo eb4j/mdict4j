@@ -28,28 +28,18 @@ class DictionaryIndex {
     private final List<String> firstKeys;
     private final List<String> lastKeys;
     private final int[] numEntries;
-    /*
-      Size of these lists is recordNumBlocks.
-     */
-    private final long[] recordCompSize;
-    private final long[] recordDecompSize;
-    private final long[] recordOffsets;
-    private final long recordNumEntries;
-    //
+    private final RecordIndex recordIndex;
+
     private final int numBlocks;
 
-    public DictionaryIndex(final List<String> keyNameList, final List<String> firstKeys, final List<String> lastKeys,
-                           final int[] numEntries, final long[] recordCompSize, final long[] recordDecompSize,
-                           final long[] recordOffsets, final long recordNumEntries, final int numBlocks) {
+    DictionaryIndex(final List<String> keyNameList, final List<String> firstKeys, final List<String> lastKeys,
+                    final int[] numEntries, final RecordIndex recordIndex, final int numBlocks) {
         this.keyNameList = keyNameList;
         this.firstKeys = firstKeys;
         this.lastKeys = lastKeys;
         this.numEntries = numEntries;
-        this.recordCompSize = recordCompSize;
-        this.recordDecompSize = recordDecompSize;
-        this.recordOffsets = recordOffsets;
-        this.recordNumEntries = recordNumEntries;
         this.numBlocks = numBlocks;
+        this.recordIndex = recordIndex;
     }
 
     /**
@@ -69,15 +59,15 @@ class DictionaryIndex {
     }
 
     long getRecordOffset(final int index) {
-        return recordOffsets[index];
+        return recordIndex.getRecordOffset(index);
     }
 
     long getRecordCompSize(final int index) {
-        return recordCompSize[index];
+        return recordIndex.getRecordCompSize(index);
     }
 
     long getRecordDecompSize(final int index) {
-        return recordDecompSize[index];
+        return recordIndex.getRecordDecompSize(index);
     }
 
     int getNumEntries(final int i) {
@@ -85,7 +75,7 @@ class DictionaryIndex {
     }
 
     public long getRecordNumEntries() {
-        return recordNumEntries;
+        return recordIndex.getRecordNumEntries();
     }
 
     public String getFirstKey(final int index) {
