@@ -22,7 +22,6 @@ import io.github.eb4j.mdict.MDException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 

@@ -66,10 +66,6 @@ public final class MdxParser {
             String headerString = new String(headerStringBytes, StandardCharsets.UTF_16LE);
             ObjectMapper mapper = new XmlMapper();
             dictionaryInfo = mapper.readValue(headerString, DictionaryInfo.class);
-            String version = dictionaryInfo.getRequiredEngineVersion();
-            if (!version.equals("2.0")) {
-                throw new MDException("Unsupported dictionary version.");
-            }
             long keyBlockPosition = inputStream.tell();
             dictionaryInfo.setKeyBlockPosition(keyBlockPosition);
         } catch (IOException e) {
@@ -87,7 +83,11 @@ public final class MdxParser {
     static DictionaryIndex parseIndex(final MDInputStream mdInputStream, final DictionaryInfo info)
             throws MDException, IOException, DataFormatException {
         Charset encoding = Charset.forName(info.getEncoding());
-        boolean v2 = info.getRequiredEngineVersion().startsWith("2");
+        String requiredVersion = info.getRequiredEngineVersion();
+        boolean v2 = !requiredVersion.startsWith("1");
+        if (!"0".equals(info.getEncrypted())) {
+            throw new MDException("Unsupported encrypted file detected.");
+        }
         mdInputStream.seek(info.getKeyBlockPosition());
         return parseBlocks(mdInputStream, v2, encoding);
     }
@@ -102,31 +102,41 @@ public final class MdxParser {
         byte[] hWord = new byte[2];
         byte[] word = new byte[4];
         byte[] dWord = new byte[8];
-        Adler32 adler32 = new Adler32();
-        mdInputStream.readFully(dWord);
-        adler32.update(dWord);
-        long keyNumBlocks = Utils.byteArrayToLong(dWord);
-        mdInputStream.readFully(dWord);
-        adler32.update(dWord);
-        long keySum = Utils.byteArrayToLong(dWord);
-        long keyIndexDecompLen = 0L;
+        long keyNumBlocks;
+        long keySum;
+        long keyIndexDecompLen = 0;  // used only when v2
+        long keyIndexCompLen;
+        long keyBlocksLen;
         if (v2) {
+            Adler32 adler32 = new Adler32();
+            mdInputStream.readFully(dWord);
+            adler32.update(dWord);
+            keyNumBlocks = Utils.byteArrayToLong(dWord);
+            mdInputStream.readFully(dWord);
+            adler32.update(dWord);
+            keySum = Utils.byteArrayToLong(dWord);
             mdInputStream.readFully(dWord);
             adler32.update(dWord);
             keyIndexDecompLen = Utils.byteArrayToLong(dWord);
-        }
-        mdInputStream.readFully(dWord);
-        adler32.update(dWord);
-        long keyIndexCompLen = Utils.byteArrayToLong(dWord);
-        mdInputStream.readFully(dWord);
-        adler32.update(dWord);
-        long keyBlocksLen = Utils.byteArrayToLong(dWord);
-        if (v2) {
+            mdInputStream.readFully(dWord);
+            adler32.update(dWord);
+            keyIndexCompLen = Utils.byteArrayToLong(dWord);
+            mdInputStream.readFully(dWord);
+            adler32.update(dWord);
+            keyBlocksLen = Utils.byteArrayToLong(dWord);
             mdInputStream.readFully(word);
             int checksum = Utils.byteArrayToInt(word);
             if (adler32.getValue() != checksum) {
                 throw new MDException("checksum error.");
             }
+        } else {
+            mdInputStream.readFully(dWord);
+            keyNumBlocks = Utils.byteArrayToLong(dWord);
+            mdInputStream.readFully(dWord);
+            keySum = Utils.byteArrayToLong(dWord);
+            keyIndexCompLen = Utils.byteArrayToLong(dWord);
+            mdInputStream.readFully(dWord);
+            keyBlocksLen = Utils.byteArrayToLong(dWord);
         }
         // Key Block info
         //
@@ -202,10 +212,8 @@ public final class MdxParser {
                 keyCompSize[i] = Utils.byteArrayToLong(dWord);
                 mdInputStream.readFully(dWord);
                 keyDecompSize[i] = Utils.byteArrayToLong(dWord);
-                //
                 sum += keyCompSize[i];
             }
-
         }
         if (sum != keyBlocksLen) {
             throw new MDException("Block size error.");
