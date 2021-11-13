@@ -9,7 +9,7 @@ plugins {
     `java-library`
     `java-library-distribution`
     `maven-publish`
-    kotlin("jvm") version "1.5.20"
+    kotlin("jvm") version "1.5.31"
     id("com.github.spotbugs") version "4.7.9"
     id("com.diffplug.spotless") version "6.0.0"
     id("com.github.kt3k.coveralls") version "2.12.0"
