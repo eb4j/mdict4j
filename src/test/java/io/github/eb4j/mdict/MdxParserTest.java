@@ -53,7 +53,6 @@ class MdxParserTest {
         info.setKeyBlockPosition(630);
         info.setEncoding("UTF-8");
         DictionaryIndex index = MdxParser.parseIndex(inputStream, info);
-        assertEquals(81, index.offsetMap.size());
-        assertEquals(81, index.keyNameList.size());
+        assertEquals(81, index.keySize());
     }
 }

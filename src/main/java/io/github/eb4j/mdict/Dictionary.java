@@ -18,46 +18,65 @@
 
 package io.github.eb4j.mdict;
 
-import io.github.eb4j.mdict.data.DictionaryIndex;
-import io.github.eb4j.mdict.data.DictionaryInfo;
-import io.github.eb4j.mdict.data.MdxParser;
+import io.github.eb4j.mdict.data.*;
 import io.github.eb4j.mdict.io.MDInputStream;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.DataFormatException;
 
 public class Dictionary {
     private final File mdxFile;
     private final File mddFile;
     private final DictionaryInfo dictionaryInfo;
-    private final DictionaryIndex dictionaryIndex;
+    private final DictionaryData<MDictEntry> dictionaryData;
 
-    public Dictionary(final DictionaryInfo info, final DictionaryIndex index, final File mdx, final File mdd) {
+    public Dictionary(final DictionaryInfo info, final DictionaryData<MDictEntry> data, final File mdx, final File mdd) {
         mdxFile = mdx;
         mddFile = mdd;
         dictionaryInfo = info;
-        dictionaryIndex = index;
+        dictionaryData = data;
     }
 
-    public Dictionary(final DictionaryInfo info, final DictionaryIndex index, final File mdxFile) {
-        this(info, index, mdxFile, null);
+    public Dictionary(final DictionaryInfo info, final DictionaryData<MDictEntry> data, final File mdxFile) {
+        this(info, data, mdxFile, null);
     }
 
-    public static Dictionary builder(final String mdxFile) throws MDException {
+    public List<Map.Entry<String, MDictEntry>> getEntries(final String word) {
+        return dictionaryData.lookUp(word);
+    }
+
+    public String getText(MDictEntry entry) {
+        return null;
+    }
+
+    public static Dictionary loadData(final String mdxFile) throws MDException {
         DictionaryInfo info;
         DictionaryIndex index;
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
         }
+        DictionaryData<MDictEntry> newData = new DictionaryData<>();
         try {
             MDInputStream ras = new MDInputStream(mdxFile);
             info = MdxParser.parseHeader(ras);
             index = MdxParser.parseIndex(ras, info);
+            int i = 0;
+            int j = 0;
+            while (i < index.keySize()) {
+                String key = index.getKeyName(i);
+                long offset = index.getRecordOffset(i);
+                long num = 0;
+                MDictEntry entry = new MDictEntry(offset, num);
+                newData.add(key, entry);
+                i++;
+            }
         } catch (IOException | DataFormatException e) {
             throw new MDException("io error", e);
         }
-        return new Dictionary(info, index, file);
+        return new Dictionary(info, newData , file);
     }
 }

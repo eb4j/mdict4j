@@ -1,1 +1,1 @@
-rootProject.name = "md4j"
+rootProject.name = "mdict4j"
