@@ -21,17 +21,17 @@ package io.github.eb4j.mdict.data;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.github.eb4j.mdict.MDException;
-import io.github.eb4j.mdict.io.LzoBlockInputStream;
 import io.github.eb4j.mdict.io.MDBlockInputStream;
 import io.github.eb4j.mdict.io.MDInputStream;
-import io.github.eb4j.mdict.io.ZlibBlockInputStream;
+import io.github.eb4j.mdict.io.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -53,13 +53,13 @@ public final class MdxParser {
             // LEN + UTF-16LE string + checksum
             inputStream.seek(0);
             inputStream.readFully(word);
-            int headerStrLength = byteArrayToInt(word);
+            int headerStrLength = Utils.byteArrayToInt(word);
             byte[] headerStringBytes = new byte[headerStrLength];
             inputStream.readFully(headerStringBytes);
             Adler32 adler32 = new Adler32();
             adler32.update(headerStringBytes);
             inputStream.readFully(word);
-            long checksum = Integer.toUnsignedLong(byteArrayToInt(word, ByteOrder.LITTLE_ENDIAN));
+            long checksum = Integer.toUnsignedLong(Utils.byteArrayToInt(word, ByteOrder.LITTLE_ENDIAN));
             if (checksum != adler32.getValue()) {
                 throw new MDException("checksum error.");
             }
@@ -86,16 +86,12 @@ public final class MdxParser {
      */
     static DictionaryIndex parseIndex(final MDInputStream mdInputStream, final DictionaryInfo info)
             throws MDException, IOException, DataFormatException {
-        DictionaryIndex dictionaryIndex = new DictionaryIndex();
         Charset encoding = Charset.forName(info.getEncoding());
         mdInputStream.seek(info.getKeyBlockPosition());
-        parseKeyBlock(mdInputStream, encoding, dictionaryIndex);
-        parseRecordBlock(mdInputStream, dictionaryIndex);
-        return dictionaryIndex;
+        return parseBlocks(mdInputStream, encoding);
     }
 
-    private static void parseKeyBlock(final MDInputStream mdInputStream, final Charset encoding,
-                                      final DictionaryIndex dictionaryIndex)
+    private static DictionaryIndex parseBlocks(final MDInputStream mdInputStream, final Charset encoding)
             throws MDException, IOException, DataFormatException {
         // Key block
         // number of Key Blocks + number of entries
@@ -107,21 +103,21 @@ public final class MdxParser {
         Adler32 adler32 = new Adler32();
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
-        long keyNumBlocks = byteArrayToLong(dWord);
+        long keyNumBlocks = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
-        long keySum = byteArrayToLong(dWord);
+        long keySum = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
-        long keyIndexDecompLen = byteArrayToLong(dWord);
+        long keyIndexDecompLen = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
-        long keyIndexCompLen = byteArrayToLong(dWord);
+        long keyIndexCompLen = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
-        long keyBlocksLen = byteArrayToLong(dWord);
+        long keyBlocksLen = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(word);
-        int checksum = byteArrayToInt(word);
+        int checksum = Utils.byteArrayToInt(word);
         if (adler32.getValue() != checksum) {
             throw new MDException("checksum error.");
         }
@@ -139,37 +135,39 @@ public final class MdxParser {
         // | compressed size | decompressed size |
         // +-------------------------------------+
         //
-        MDBlockInputStream indexDs = decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen);
-        dictionaryIndex.initKeyNum((int) keyNumBlocks);
+        MDBlockInputStream indexDs = Utils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen);
+        int[] numEntries = new int[(int) keyNumBlocks];
+        long[] keyCompSize = new long[(int) keyNumBlocks];
+        long[] keyDecompSize = new long[(int) keyNumBlocks];
+        List<String> firstKeys = new ArrayList<>();
+        List<String> lastKeys = new ArrayList<>();
+        List<String> keyNameList = new ArrayList<>();
         long sum = 0;
-        long compSize;
-        long decompSize;
-        long numEntries;
-        for (int i = 0; i < dictionaryIndex.getKeyNumBlocks(); i++) {
+        for (int i = 0; i < keyNumBlocks; i++) {
             indexDs.readFully(dWord);
-            numEntries = byteArrayToLong(dWord);
+            numEntries[i] = (int) Utils.byteArrayToLong(dWord);
             indexDs.readFully(hWord);
-            short firstSize = byteArrayToShort(hWord);
+            short firstSize = Utils.byteArrayToShort(hWord);
             byte[] firstBytes = new byte[firstSize];
             indexDs.readFully(firstBytes);
             String firstWord = new String(firstBytes, encoding);
             indexDs.skip(1);
             //
             indexDs.readFully(hWord);
-            short lastSize = byteArrayToShort(hWord);
+            short lastSize = Utils.byteArrayToShort(hWord);
             byte[] lastBytes = new byte[lastSize];
             indexDs.readFully(lastBytes);
             String lastWord = new String(lastBytes, encoding);
             indexDs.skip(1);
             //
             indexDs.readFully(dWord);
-            compSize = byteArrayToLong(dWord);
+            keyCompSize[i] = Utils.byteArrayToLong(dWord);
             indexDs.readFully(dWord);
-            decompSize = byteArrayToLong(dWord);
+            keyDecompSize[i] = Utils.byteArrayToLong(dWord);
             //
-            sum += compSize;
-            dictionaryIndex.addFirstLastKeys(i, firstWord, lastWord);
-            dictionaryIndex.setKeySizes(i, (int) numEntries, compSize, decompSize);
+            sum += keyCompSize[i];
+            firstKeys.add(firstWord);
+            lastKeys.add(lastWord);
         }
         if (sum != keyBlocksLen) {
             throw new MDException("Block size error.");
@@ -197,11 +195,10 @@ public final class MdxParser {
         // | key id | key text                            |00 |
         // +--------------------------------------------------+
         //
-        for (int i = 0; i < dictionaryIndex.getKeyNumBlocks(); i++) {
-            MDBlockInputStream blockIns = decompress(mdInputStream, dictionaryIndex.getKeyCompSize(i),
-                    dictionaryIndex.getKeyDecompSize(i));
+        for (int i = 0; i < keyNumBlocks; i++) {
+            MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i]);
             int b = blockIns.read();
-            for (int j = 0; j < dictionaryIndex.getNumEntries(i); j++) {
+            for (int j = 0; j < numEntries[i]; j++) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 for (int k = 0; k < 8; k++) {
                     b = blockIns.read();
@@ -212,96 +209,60 @@ public final class MdxParser {
                 }
                 String keytext = new String(baos.toByteArray(), encoding);
                 String result = keytext;
-                if (dictionaryIndex.keyContainsName(keytext)) {
+                if (keyNameList.contains(keytext)) {
                     for (int k = 1; ; k++) {
                         String keywordWithNum = keytext + k;
-                        if (!dictionaryIndex.keyContainsName(keywordWithNum)) {
+                        if (!keyNameList.contains(keywordWithNum)) {
                             result = keywordWithNum;
                             break;
                         }
                     }
                 }
-                dictionaryIndex.setKeyName(i, result);
+                keyNameList.add(result);
             }
         }
-        if (dictionaryIndex.keyNameSize() != keySum) {
+        if (keyNameList.size() != keySum) {
             throw new MDException("Key sum error.");
         }
-    }
-
-    private static void parseRecordBlock(final MDInputStream mdInputStream, final DictionaryIndex dictionaryIndex)
-            throws IOException, MDException {
         // Record block
         //  number of record blocks + number of entries +
         //  number of bytes of all lists +
         //  number of bytes of all blocks +
         //  index of  each blocks +
         //  record blocks
-        byte[] dWord = new byte[8];
         mdInputStream.readFully(dWord);
-        long recordNumBlocks = byteArrayToLong(dWord);
+        long recordNumBlocks = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
-        long recordNumEntries = byteArrayToLong(dWord);
+        long recordNumEntries = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
-        long recordIndexLen = byteArrayToLong(dWord);
+        long recordIndexLen = Utils.byteArrayToLong(dWord);
         mdInputStream.readFully(dWord);
-        long recordBlockLen = byteArrayToLong(dWord);
+        long recordBlockLen = Utils.byteArrayToLong(dWord);
         long offset = mdInputStream.tell() + recordIndexLen;
         long endOffset = offset + recordBlockLen;
         //
-        dictionaryIndex.initRecordNum((int) recordNumBlocks, recordNumEntries, offset);
+        long[] recordCompSize = new long[(int) recordNumBlocks];
+        long[] recordDecompSize = new long[(int) recordNumBlocks];
+        long[] recordOffsets = new long[(int) recordNumBlocks];
         long recordBlockCompSize;
         long recordBlockDecompSize;
         for (int i = 0; i < recordNumBlocks; i++) {
             mdInputStream.readFully(dWord);
-            recordBlockCompSize = byteArrayToLong(dWord);
+            recordBlockCompSize = Utils.byteArrayToLong(dWord);
             mdInputStream.readFully(dWord);
-            recordBlockDecompSize = byteArrayToLong(dWord);
+            recordBlockDecompSize = Utils.byteArrayToLong(dWord);
             //
-            dictionaryIndex.addRecordSizes(i, recordBlockCompSize, recordBlockDecompSize);
+            recordCompSize[i] = recordBlockCompSize;
+            recordDecompSize[i] = recordBlockDecompSize;
+            recordOffsets[i] = offset;
+            offset += recordBlockCompSize;
         }
-        if (dictionaryIndex.endRecordOffset() != endOffset) {
+        if (offset != endOffset) {
             throw new MDException("Wrong index position.");
         }
+        // generate index POJO
+        return new DictionaryIndex(keyNameList, firstKeys, lastKeys, numEntries, recordCompSize, recordDecompSize,
+                recordOffsets, recordNumEntries, (int) keyNumBlocks);
     }
 
-    private static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
-                                                 final long decompSize)
-            throws IOException, MDException, DataFormatException {
-        int flag = inputStream.read();
-        inputStream.skip(3);
-        byte[] word = new byte[4];
-        inputStream.readFully(word);
-        long checksum = byteArrayToInt(word);
-        switch (flag) {
-            case 0:
-                break;
-            case 1:
-                return new LzoBlockInputStream(inputStream, compSize - 8, decompSize, checksum);
-            case 2:
-                return new ZlibBlockInputStream(inputStream, compSize - 8, decompSize, checksum);
-            default:
-                throw new MDException(String.format("Unknown compression level: %d", flag));
-        }
-        throw new MDException("Unsupported data.");
-    }
-
-    private static long byteArrayToLong(final byte[] dWord) {
-        ByteBuffer buffer = ByteBuffer.wrap(dWord).order(ByteOrder.BIG_ENDIAN);
-        return buffer.getLong();
-    }
-
-    private static int byteArrayToInt(final byte[] word, final ByteOrder byteOrder) {
-        ByteBuffer buffer = ByteBuffer.wrap(word).order(byteOrder);
-        return buffer.getInt();
-    }
-
-    private static int byteArrayToInt(final byte[] word) {
-        return byteArrayToInt(word, ByteOrder.BIG_ENDIAN);
-    }
-
-    private static short byteArrayToShort(final byte[] hWord) {
-        ByteBuffer buffer = ByteBuffer.wrap(hWord).order(ByteOrder.BIG_ENDIAN);
-        return buffer.getShort();
-    }
 }

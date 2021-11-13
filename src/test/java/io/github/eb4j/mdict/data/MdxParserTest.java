@@ -55,6 +55,6 @@ class MdxParserTest {
         assertEquals(3289, index.getRecordCompSize(0));
         assertEquals(6422, index.getRecordDecompSize(0));
         assertEquals(1331, index.getRecordOffset(0));
-        assertEquals(1, index.getKeyNumBlocks());
+        assertEquals(1, index.getNumBlocks());
     }
 }

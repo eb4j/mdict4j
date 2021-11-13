@@ -18,29 +18,29 @@
 
 package io.github.eb4j.mdict.io;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
-public abstract class MDBlockInputStream {
-    protected ByteBuffer bytes;
+public class MDBlockInputStream extends InputStream {
+    protected final ByteArrayInputStream byteArrayInputStream;
 
-    public MDBlockInputStream() {
+    public MDBlockInputStream(ByteArrayInputStream byteArrayInputStream) {
+        this.byteArrayInputStream = byteArrayInputStream;
     }
 
-    public MDBlockInputStream(final ByteBuffer bytes) {
-        this.bytes = bytes;
-    }
-
-    public void readFully(final byte[] b) {
-        bytes.get(b);
+    public void readFully(final byte[] b) throws IOException {
+        int r = byteArrayInputStream.read(b);
+        if (r < b.length) {
+            throw new IOException("Cannot read fully.");
+        }
     }
 
     public void skip(final int size) {
-        byte[] ignore = new byte[size];
-        bytes.get(ignore);
+        byteArrayInputStream.skip(size);
     }
 
     public int read() {
-        return bytes.get();
+        return byteArrayInputStream.read();
     }
-
 }
