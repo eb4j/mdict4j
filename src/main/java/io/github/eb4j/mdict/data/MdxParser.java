@@ -208,17 +208,9 @@ class MdxParser {
         }
         for (int i = 0; i < keyNumBlocks; i++) {
             MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i], false);
-            int b = blockIns.read();
             for (int j = 0; j < numEntries[i]; j++) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                for (int k = 0; k < 8; k++) {
-                    b = blockIns.read();
-                }
-                while (b != 0) {
-                    baos.write(b);
-                    b = blockIns.read();
-                }
-                String keytext = new String(baos.toByteArray(), encoding);
+                long keyId = Utils.readLong(blockIns);
+                String keytext = Utils.readCString(blockIns, encoding);
                 keyNameList.add(getKeyName(keytext));
             }
         }

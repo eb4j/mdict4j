@@ -40,6 +40,11 @@ public class MDBlockInputStream extends InputStream {
         byteArrayInputStream.skip(size);
     }
 
+    /**
+     * read one byte and return value ranged form 0-255.
+     * When end-of-data reached, return -1.
+     * @return the next byte of data, or -1 if the end of the stream has been reached.
+     */
     public int read() {
         return byteArrayInputStream.read();
     }

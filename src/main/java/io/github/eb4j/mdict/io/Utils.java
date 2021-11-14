@@ -26,6 +26,7 @@ import org.anarres.lzo.lzo_uintp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -92,6 +93,20 @@ public final class Utils {
         return new String(bytes, encoding);
     }
 
+    public static String readCString(final MDBlockInputStream mdInputStream, final Charset encoding)
+            throws MDException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int c = mdInputStream.read();
+        while (c > 0) {
+            baos.write(c);
+            c = mdInputStream.read();
+        }
+        if (c == -1) {
+            throw new MDException("Unexpected end of stream of data.");
+        }
+        return new String(baos.toByteArray(), encoding);
+    }
+
     public static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
                                                   final long decompSize, final boolean encrypted)
             throws IOException, MDException, DataFormatException {
@@ -151,7 +166,7 @@ public final class Utils {
             throws NoSuchAlgorithmException {
         byte[] result = buffer.clone();
         MessageDigest messageDigest = MessageDigest.getInstance("RIPEMD128");
-        byte[] salt = Arrays.copyOfRange(buffer, 4, 4);
+        byte[] salt = Arrays.copyOfRange(buffer, 4, 8);
         messageDigest.update(salt);
         byte[] phrase = new byte[] {(byte) 0x95, 0x36, 0x00, 0x00};
         messageDigest.update(phrase);
@@ -162,7 +177,7 @@ public final class Utils {
             b = (b >> 4) | (b << 4);
             b = b ^ prev ^ (i & 0xff) ^ key[i % 16];
             prev = buffer[i + 8];
-            result[i] = (byte) b;
+            result[i + 8] = (byte) b;
         }
         return result;
     }
