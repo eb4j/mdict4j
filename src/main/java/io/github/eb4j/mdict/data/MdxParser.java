@@ -25,13 +25,14 @@ import io.github.eb4j.mdict.io.MDBlockInputStream;
 import io.github.eb4j.mdict.io.MDInputStream;
 import io.github.eb4j.mdict.io.Utils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -49,7 +50,6 @@ class MdxParser {
 
     private final List<String> firstKeys = new ArrayList<>();
     private final List<String> lastKeys = new ArrayList<>();
-    private final List<String> keyNameList = new ArrayList<>();
 
     MdxParser(final MDInputStream inputStream) {
         mdInputStream = inputStream;
@@ -95,8 +95,7 @@ class MdxParser {
      * @return DictionaryIndex object.
      * @throws MDException when read or parse error.
      */
-    DictionaryIndex parseIndex()
-            throws MDException, IOException, DataFormatException {
+    DictionaryData<Object> parseIndex() throws MDException, IOException, DataFormatException {
         Charset encoding = Charset.forName(dictionaryInfo.getEncoding());
         String requiredVersion = dictionaryInfo.getRequiredEngineVersion();
         boolean v2 = !requiredVersion.startsWith("1");
@@ -124,8 +123,7 @@ class MdxParser {
             keyIndexCompLen = Utils.readLong(mdInputStream);
             keyBlocksLen = Utils.readLong(mdInputStream);
         }
-        parseKeyBlock(v2, encoding, encrypted);
-        return parseRecordBlock();
+        return parseKeyBlock(v2, encoding, encrypted);
     }
 
     /**
@@ -166,7 +164,7 @@ class MdxParser {
      * +--------------------------------------------------+
      *
      */
-    private void parseKeyBlock(final boolean v2, final Charset encoding, final boolean encrypted)
+    private DictionaryData<Object> parseKeyBlock(final boolean v2, final Charset encoding, final boolean encrypted)
             throws MDException, IOException, DataFormatException {
         byte[] dWord = new byte[8];
         numEntries = new int[(int) keyNumBlocks];
@@ -206,54 +204,38 @@ class MdxParser {
         if (sum != keyBlocksLen) {
             throw new MDException("Block size error.");
         }
+        DictionaryDataBuilder<Object> newDataBuilder = new DictionaryDataBuilder<>();
         for (int i = 0; i < keyNumBlocks; i++) {
             MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i], false);
             for (int j = 0; j < numEntries[i]; j++) {
-                long keyId = Utils.readLong(blockIns);
+                long offset = Utils.readLong(blockIns);
                 String keytext = Utils.readCString(blockIns, encoding);
-                keyNameList.add(getKeyName(keytext));
+                newDataBuilder.add(keytext, offset);
             }
         }
-        if (keyNameList.size() != keySum) {
-            throw new MDException("Key sum error.");
-        }
+        return newDataBuilder.build();
     }
 
-    private DictionaryIndex parseRecordBlock() throws MDException, IOException {
+    public RecordIndex parseRecordBlock() throws MDException, IOException {
         long recordNumBlocks = Utils.readLong(mdInputStream);
+        long[] recordCompSize = new long[(int) recordNumBlocks];
+        long[] recordDecompSize = new long[(int) recordNumBlocks];
+        long[] recordOffsets = new long[(int) recordNumBlocks];
         long recordNumEntries = Utils.readLong(mdInputStream);
         long recordIndexLen = Utils.readLong(mdInputStream);
         long recordBlockLen = Utils.readLong(mdInputStream);
         long offset = mdInputStream.tell() + recordIndexLen;
         long endOffset = offset + recordBlockLen;
-        RecordIndex recordIndex = new RecordIndex(recordNumEntries, (int) recordNumBlocks);
-        long recordBlockCompSize;
-        long recordBlockDecompSize;
         for (int i = 0; i < recordNumBlocks; i++) {
-            recordBlockCompSize = Utils.readLong(mdInputStream);
-            recordBlockDecompSize = Utils.readLong(mdInputStream);
-            recordIndex.setRecordCompSize(i, recordBlockCompSize);
-            recordIndex.setRecordDecompSize(i, recordBlockDecompSize);
-            recordIndex.setRecordOffsets(i, offset);
-            offset += recordBlockCompSize;
+            recordCompSize[i] = Utils.readLong(mdInputStream);
+            recordDecompSize[i] = Utils.readLong(mdInputStream);
+            recordOffsets[i] = offset;
+            offset += recordCompSize[i];
         }
         if (offset != endOffset) {
             throw new MDException("Wrong index position.");
         }
-        return new DictionaryIndex(keyNameList, firstKeys, lastKeys, numEntries, recordIndex, (int) keyNumBlocks);
+        return new RecordIndex(recordCompSize, recordDecompSize, recordOffsets, recordNumEntries);
     }
 
-    private String getKeyName(final String keytext) {
-        String result = keytext;
-        if (keyNameList.contains(keytext)) {
-            for (int k = 1; ; k++) {
-                String keywordWithNum = keytext + k;
-                if (!keyNameList.contains(keywordWithNum)) {
-                    result = keywordWithNum;
-                    break;
-                }
-            }
-        }
-        return result;
-    }
 }

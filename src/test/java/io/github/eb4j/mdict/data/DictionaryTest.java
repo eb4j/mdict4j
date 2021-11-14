@@ -41,14 +41,11 @@ class DictionaryTest {
         assertEquals("2021-11-11", dictionary.getCreationDate());
         assertEquals("EJDIC", dictionary.getTitle());
         assertEquals("\"UTF-8\" encoding.", dictionary.getDescription());
-        for (Map.Entry<String, MDictEntry> entry: dictionary.getEntries("z")) {
+        for (Map.Entry<String, Object> entry: dictionary.getEntries("z")) {
             String word = entry.getKey();
             assertEquals("z", word);
-            MDictEntry mDictEntry = entry.getValue();
-            assertEquals(0, mDictEntry.getBlockNumber());
-            assertEquals(0, mDictEntry.getEntryIndex());
-            assertEquals("英語アルファベットの第26字(最後の字) ", dictionary.getText(mDictEntry));
             break;
         }
     }
+
 }

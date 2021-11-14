@@ -19,7 +19,6 @@
 package io.github.eb4j.mdict;
 
 import io.github.eb4j.mdict.data.Dictionary;
-import io.github.eb4j.mdict.data.MDictEntry;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,8 +31,8 @@ import java.util.Map;
 public class Searcher implements ISearch {
 
     private final io.github.eb4j.mdict.data.Dictionary dictionary;
-    private final List<Map.Entry<String, MDictEntry>> entries = new ArrayList<>();
-    private Iterator<Map.Entry<String, MDictEntry>> iterator;
+    private final List<Map.Entry<String, Object>> entries = new ArrayList<>();
+    private Iterator<Map.Entry<String, Object>> iterator;
 
     public Searcher(final Dictionary dictionary) {
         this.dictionary = dictionary;
@@ -48,13 +47,18 @@ public class Searcher implements ISearch {
 
     @Override
     public Result getNextResult() throws MDException {
-        Map.Entry<String, MDictEntry> entry = iterator.next();
+        Map.Entry<String, Object> entry = iterator.next();
         if (entry == null) {
             return null;
         }
         String key = entry.getKey();
-        String text = dictionary.getText(entry.getValue());
-        return new Result(key, text);
+        Object obj = entry.getValue();
+        String text;
+        if (obj instanceof Long) {
+            text = dictionary.getText((Long) obj);
+            return new Result(key, text);
+        }
+        return null;
     }
 
 }

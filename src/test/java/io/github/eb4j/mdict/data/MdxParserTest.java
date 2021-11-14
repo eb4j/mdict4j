@@ -49,12 +49,8 @@ class MdxParserTest {
         MDInputStream inputStream = new MDInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
         MdxParser parser = new MdxParser(inputStream);
-        parser.parseHeader();
-        DictionaryIndex index = parser.parseIndex();
-        assertEquals(81, index.keySize());
-        assertEquals(3289, index.getRecordCompSize(0));
-        assertEquals(6422, index.getRecordDecompSize(0));
-        assertEquals(1331, index.getRecordOffset(0));
-        assertEquals(1, index.getNumBlocks());
+        DictionaryInfo info = parser.parseHeader();
+        DictionaryData<Object> index = parser.parseIndex();
+        RecordIndex recordIndex = parser.parseRecordBlock();
     }
 }

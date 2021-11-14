@@ -24,17 +24,25 @@ import org.anarres.lzo.LzoDecompressor;
 import org.anarres.lzo.LzoLibrary;
 import org.anarres.lzo.lzo_uintp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
-import java.util.Arrays;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
@@ -112,9 +120,8 @@ public final class Utils {
             throws IOException, MDException, DataFormatException {
         int flag = inputStream.read();
         inputStream.skip(3);
-        byte[] word = new byte[4];
-        inputStream.readFully(word);
-        long checksum = byteArrayToInt(word);
+        byte[] checksum = new byte[4];
+        inputStream.readFully(checksum);
         byte[] input;
         byte[] output;
         switch (flag) {
@@ -127,9 +134,23 @@ public final class Utils {
                 LzoAlgorithm algorithm = LzoAlgorithm.LZO1X;
                 LzoDecompressor decompressor = LzoLibrary.getInstance().newDecompressor(algorithm, null);
                 lzo_uintp outLen = new lzo_uintp();
-                decompressor.decompress(input, 0, (int) compSize, output, 0, outLen);
+                if (encrypted) {
+                    try {
+                        byte[] temp = decryptKeyIndex(input, checksum);
+                        decompressor.decompress(temp, 0, (int) compSize - 8, output, 0, outLen);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new MDException("Decryption failed.", e);
+                    }
+                } else {
+                    decompressor.decompress(input, 0, (int) compSize - 8, output, 0, outLen);
+                }
                 if (outLen.value != decompSize) {
                     throw new MDException("Decompression size is differ.");
+                }
+                Adler32 adler32 = new Adler32();
+                adler32.update(output);
+                if (adler32.getValue() != Utils.byteArrayToInt(checksum)) {
+                    throw new MDException("Decompression checksum error.");
                 }
                 return new MDBlockInputStream(new ByteArrayInputStream(output));
             case 2:
@@ -139,17 +160,18 @@ public final class Utils {
                 Inflater inflater = new Inflater();
                 if (encrypted) {
                     try {
-                        byte[] decrypted = decrypt(input);
-                        inflater.setInput(decrypted);
+                        inflater.setInput(decryptKeyIndex(input, checksum));
                     } catch (NoSuchAlgorithmException e) {
                         throw new MDException("Decryption failed.", e);
                     }
                 } else {
                     inflater.setInput(input);
                 }
-                int size = inflater.inflate(output);
-                if (checksum != inflater.getAdler()) {
-                    throw new MDException("checksum error");
+                int size;
+                try {
+                    size = inflater.inflate(output);
+                } catch (DataFormatException e) {
+                    throw new MDException("Decompression error.", e);
                 }
                 inflater.end();
                 if (size != decompSize) {
@@ -162,22 +184,35 @@ public final class Utils {
         throw new MDException("Unsupported data.");
     }
 
-    public static byte[] decrypt(final byte[] buffer)
+    public static byte[] decryptKeyIndex(final byte[] buffer, final byte[] salt)
             throws NoSuchAlgorithmException {
-        byte[] result = buffer.clone();
         MessageDigest messageDigest = MessageDigest.getInstance("RIPEMD128");
-        byte[] salt = Arrays.copyOfRange(buffer, 4, 8);
         messageDigest.update(salt);
-        byte[] phrase = new byte[] {(byte) 0x95, 0x36, 0x00, 0x00};
-        messageDigest.update(phrase);
+        messageDigest.update(Hex.decode("95360000"));
         byte[] key = messageDigest.digest();
-        int prev = 0x36;
-        for (int i = 0; i < buffer.length - 8; i++) {
-            int b = buffer[i + 8];
-            b = (b >> 4) | (b << 4);
-            b = b ^ prev ^ (i & 0xff) ^ key[i % 16];
-            prev = buffer[i + 8];
-            result[i + 8] = (byte) b;
+        byte[] result = new byte[buffer.length];
+        byte prev = 0x36;
+        for (int i = 0; i < buffer.length; i++) {
+            byte t = (byte) (((buffer[i] & 0xff) >>> 4) | (buffer[i] << 4) & 0xff);
+            result[i] = (byte) (t ^ prev ^ (i & 0xff) ^ key[i % 16]);
+            prev = buffer[i];
+        }
+        return result;
+    }
+
+    public static byte[] decryptSalsa(final byte[] buffer, final byte[] keytext) throws MDException {
+        byte[] result;
+        try {
+            byte[] ivs = Hex.decode("0000000000000000");
+            Cipher salsa20 = Cipher.getInstance("Salsa20");
+            SecretKeySpec key = new SecretKeySpec(keytext, "Salsa20");
+            IvParameterSpec iv = new IvParameterSpec(ivs);
+            salsa20.init(Cipher.DECRYPT_MODE, key, iv);
+            salsa20.update(buffer);
+            result = salsa20.doFinal();
+        } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+                BadPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
+            throw new MDException("Decryption error: ", e);
         }
         return result;
     }

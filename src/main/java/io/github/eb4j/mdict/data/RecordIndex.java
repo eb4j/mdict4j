@@ -27,11 +27,11 @@ public final class RecordIndex {
     private final long[] recordOffsets;
     private final long recordNumEntries;
 
-    public RecordIndex(final long recordNumEntries, final int recordNumBlocks) {
+    public RecordIndex(final long[] recordCompSize, final long[] recordDecompSize, final long[] recordOffsets, final long recordNumEntries) {
+        this.recordCompSize = recordCompSize;
+        this.recordDecompSize = recordDecompSize;
+        this.recordOffsets = recordOffsets;
         this.recordNumEntries = recordNumEntries;
-        recordCompSize = new long[recordNumBlocks];
-        recordDecompSize = new long[recordNumBlocks];
-        recordOffsets = new long[recordNumBlocks];
     }
 
     public long getRecordCompSize(final int index) {
@@ -42,23 +42,11 @@ public final class RecordIndex {
         return recordDecompSize[index];
     }
 
-    public long getRecordOffset(final int index) {
-        return recordOffsets[index];
+    public long[] getRecordOffsets() {
+        return recordOffsets;
     }
 
     public long getRecordNumEntries() {
         return recordNumEntries;
-    }
-
-    public void setRecordCompSize(final int i, final long recordBlockCompSize) {
-        recordCompSize[i] = recordBlockCompSize;
-    }
-
-    public void setRecordDecompSize(final int i, final long recordBlockDecompSize) {
-        recordDecompSize[i] = recordBlockDecompSize;
-    }
-
-    public void setRecordOffsets(final int i, final long offset) {
-        recordOffsets[i] = offset;
     }
 }
