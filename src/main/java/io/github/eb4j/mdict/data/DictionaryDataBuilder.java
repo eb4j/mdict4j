@@ -36,7 +36,7 @@ public final class DictionaryDataBuilder<T> {
      * build DictionaryData POJO.
      * @return DictionaryData immutable object.
      */
-    public DictionaryData<T> build() throws MDException {
+    public DictionaryData<T> build() {
         return new DictionaryData<>(temp);
     }
 

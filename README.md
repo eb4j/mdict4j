@@ -1,7 +1,11 @@
 # MDict4J library
 
 MDict is one of popular dictionary formats.
-mdict4j is a parser library for MDict dictionary v2.
+mdict4j is a parser library for MDict dictionary.
+
+## Limitation
+
+Current mdict4j only supports MDX file.
 
 ## License
 
