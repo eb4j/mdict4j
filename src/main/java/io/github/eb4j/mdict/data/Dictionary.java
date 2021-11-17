@@ -115,7 +115,7 @@ public class Dictionary {
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
         try (MDBlockInputStream decompressedStream = Utils.decompress(mdInputStream, compSize, decompSize, false)) {
-            long pos = decompressedStream.skip(skipSize);
+            long ignored = decompressedStream.skip(skipSize);
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
                     (int) decompSize)) {
                 result = bufferedReader.readLine();
@@ -126,7 +126,7 @@ public class Dictionary {
         }
     }
 
-    public static Dictionary loadData(final String mdxFile) throws MDException {
+    public static Dictionary loadData(final String mdxFile, final byte[] keyword) throws MDException {
         DictionaryInfo info;
         DictionaryData<Object> index;
         RecordIndex record;
@@ -139,7 +139,7 @@ public class Dictionary {
             mdInputStream = new MDInputStream(mdxFile);
             MdxParser parser = new MdxParser(mdInputStream);
             info = parser.parseHeader();
-            index = parser.parseIndex();
+            index = parser.parseIndex(keyword);
             record = parser.parseRecordBlock();
         } catch (IOException | DataFormatException e) {
             throw new MDException("Dictionary data read error", e);

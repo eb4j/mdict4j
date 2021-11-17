@@ -93,14 +93,13 @@ class MdxParser {
      * @return DictionaryIndex object.
      * @throws MDException when read or parse error.
      */
-    DictionaryData<Object> parseIndex() throws MDException, IOException, DataFormatException {
+    DictionaryData<Object> parseIndex(final byte[] password) throws MDException, IOException, DataFormatException {
         Charset encoding = Charset.forName(dictionaryInfo.getEncoding());
         String requiredVersion = dictionaryInfo.getRequiredEngineVersion();
         boolean v2 = !requiredVersion.startsWith("1");
         int encrypt = Integer.parseInt(dictionaryInfo.getEncrypted());
         boolean headerEncrypted = (encrypt & 0x01) > 0;
         mdInputStream.seek(dictionaryInfo.getKeyBlockPosition());
-        byte[] password = new byte[32];
         byte[] word = new byte[4];
         if (v2) {
             if (headerEncrypted) {

@@ -34,7 +34,7 @@ class DictionaryTest {
     @Test
     void loadDictionary() throws URISyntaxException, MDException {
         Dictionary dictionary = Dictionary.loadData(
-                Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath());
+                Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath(), null);
         assertNotNull(dictionary);
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
         assertEquals("Html", dictionary.getFormat());

@@ -31,7 +31,7 @@ class SearcherTest {
     @Test
     void search() throws MDException, URISyntaxException {
         Dictionary dictionary = Dictionary.loadData(
-                Objects.requireNonNull(SearcherTest.class.getResource("/test.mdx")).toURI().getPath());
+                Objects.requireNonNull(SearcherTest.class.getResource("/test.mdx")).toURI().getPath(), null);
         Searcher searcher = new Searcher(dictionary);
         searcher.search("z");
         Result result = searcher.getNextResult();
