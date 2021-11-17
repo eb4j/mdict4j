@@ -66,6 +66,13 @@ public final class Utils {
         return byteArrayToLong(dWord);
     }
 
+    public static long readLong(final MDBlockInputStream mdInputStream, final Adler32 adler32) throws IOException {
+        byte[] dWord = new byte[8];
+        mdInputStream.readFully(dWord);
+        adler32.update(dWord);
+        return byteArrayToLong(dWord);
+    }
+
     public static long readLong(final MDBlockInputStream mdInputStream) throws IOException {
         byte[] dWord = new byte[8];
         mdInputStream.readFully(dWord);
@@ -208,6 +215,11 @@ public final class Utils {
             prev = buffer[i];
         }
         return result;
+    }
+
+    public static MDBlockInputStream decompressKeyHeader(final byte[] input, final byte[] keytext) {
+        byte[] result = decryptKeyHeader(input, keytext);
+        return new MDBlockInputStream(new ByteArrayInputStream(result));
     }
 
     public static byte[] decryptKeyHeader(final byte[] input, final byte[] keytext) {

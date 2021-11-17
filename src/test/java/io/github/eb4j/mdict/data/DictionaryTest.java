@@ -22,6 +22,7 @@ import io.github.eb4j.mdict.MDException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,7 +36,7 @@ class DictionaryTest {
         Dictionary dictionary = Dictionary.loadData(
                 Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath());
         assertNotNull(dictionary);
-        assertEquals("UTF-8", dictionary.getEncoding());
+        assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
         assertEquals("Html", dictionary.getFormat());
         assertEquals("", dictionary.getStyleSheet());
         assertEquals("2021-11-11", dictionary.getCreationDate());
@@ -43,8 +44,9 @@ class DictionaryTest {
         assertEquals("\"UTF-8\" encoding.", dictionary.getDescription());
         for (Map.Entry<String, Object> entry: dictionary.getEntries("z")) {
             String word = entry.getKey();
-            assertEquals("z", word);
-            break;
+            Object value = entry.getValue();
+            String text = dictionary.getText((long) value);
+            assertNotNull(text);
         }
     }
 

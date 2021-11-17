@@ -106,8 +106,18 @@ class MdxParser {
             if (headerEncrypted) {
                 byte[] buf = new byte[40];
                 mdInputStream.readFully(buf);
-                byte[] decrypted = Utils.decryptKeyHeader(buf, password);
-                // implement me.
+                MDBlockInputStream decrypted = Utils.decompressKeyHeader(buf, password);
+                Adler32 adler32 = new Adler32();
+                keyNumBlocks = Utils.readLong(decrypted, adler32);
+                keySum = Utils.readLong(decrypted, adler32);
+                keyIndexDecompLen = Utils.readLong(decrypted, adler32);
+                keyIndexCompLen = Utils.readLong(decrypted, adler32);
+                keyBlocksLen = Utils.readLong(decrypted, adler32);
+                mdInputStream.readFully(word);
+                int checksum = Utils.byteArrayToInt(word);
+                if (adler32.getValue() != checksum) {
+                    throw new MDException("checksum error.");
+                }
             } else {
                 Adler32 adler32 = new Adler32();
                 keyNumBlocks = Utils.readLong(mdInputStream, adler32);
@@ -229,12 +239,13 @@ class MdxParser {
         long recordNumEntries = Utils.readLong(mdInputStream);
         long recordIndexLen = Utils.readLong(mdInputStream);
         long recordBlockLen = Utils.readLong(mdInputStream);
+        long offsetDecomp = 0;
         long offsetComp = mdInputStream.tell() + recordIndexLen;
-        long offsetDecomp = offsetComp;
         long endOffsetComp = offsetComp + recordBlockLen;
         for (int i = 0; i < recordNumBlocks; i++) {
             recordCompSize[i] = Utils.readLong(mdInputStream);
             recordOffsetComp[i] = offsetComp;
+            offsetComp += recordCompSize[i];
             recordDecompSize[i] = Utils.readLong(mdInputStream);
             recordOffsetDecomp[i] = offsetDecomp;
             offsetDecomp += recordDecompSize[i];

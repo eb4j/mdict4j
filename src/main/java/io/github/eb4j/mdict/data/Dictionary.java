@@ -118,7 +118,7 @@ public class Dictionary {
             decompressedStream.skip(skipSize);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
                     (int) decompSize);
-            // fixme.
+            result = bufferedReader.readLine();
             return result;
         } catch (DataFormatException | IOException e) {
             throw new MDException("data decompression error.", e);
