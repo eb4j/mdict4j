@@ -23,23 +23,20 @@ import org.anarres.lzo.LzoAlgorithm;
 import org.anarres.lzo.LzoDecompressor;
 import org.anarres.lzo.LzoLibrary;
 import org.anarres.lzo.lzo_uintp;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.engines.Salsa20Engine;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
@@ -104,13 +101,26 @@ public final class Utils {
     public static String readCString(final MDBlockInputStream mdInputStream, final Charset encoding)
             throws MDException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int c = mdInputStream.read();
-        while (c > 0) {
-            baos.write(c);
-            c = mdInputStream.read();
-        }
-        if (c == -1) {
-            throw new MDException("Unexpected end of stream of data.");
+        if (StandardCharsets.UTF_16LE.equals(encoding) || StandardCharsets.UTF_16.equals(encoding)) {
+            byte[] buf = new byte[2];
+            try {
+                mdInputStream.readFully(buf);
+                while (buf[0] != 0 && buf[1] != 0) {
+                    baos.write(buf);
+                    mdInputStream.readFully(buf);
+                }
+            } catch (IOException e) {
+                throw new MDException("Unexpected end of stream of data.");
+            }
+        } else {
+            int c = mdInputStream.read();
+            while (c > 0) {
+                baos.write(c);
+                c = mdInputStream.read();
+            }
+            if (c == -1) {
+                throw new MDException("Unexpected end of stream of data.");
+            }
         }
         return new String(baos.toByteArray(), encoding);
     }
@@ -200,20 +210,14 @@ public final class Utils {
         return result;
     }
 
-    public static byte[] decryptSalsa(final byte[] buffer, final byte[] keytext) throws MDException {
-        byte[] result;
-        try {
-            byte[] ivs = Hex.decode("0000000000000000");
-            Cipher salsa20 = Cipher.getInstance("Salsa20");
-            SecretKeySpec key = new SecretKeySpec(keytext, "Salsa20");
-            IvParameterSpec iv = new IvParameterSpec(ivs);
-            salsa20.init(Cipher.DECRYPT_MODE, key, iv);
-            salsa20.update(buffer);
-            result = salsa20.doFinal();
-        } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
-                BadPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            throw new MDException("Decryption error: ", e);
-        }
+    public static byte[] decryptKeyHeader(final byte[] input, final byte[] keytext) {
+        byte[] result = new byte[input.length];
+        byte[] ivs = Hex.decode("0000000000000000");
+        Salsa20Engine salsa20 = new Salsa20Engine(8);
+        CipherParameters param = new KeyParameter(keytext);
+        param = new ParametersWithIV(param, ivs);
+        salsa20.init(false, param);
+        salsa20.processBytes(input, 0, input.length, result, 0);
         return result;
     }
 

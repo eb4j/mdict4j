@@ -31,8 +31,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -99,23 +97,29 @@ class MdxParser {
         Charset encoding = Charset.forName(dictionaryInfo.getEncoding());
         String requiredVersion = dictionaryInfo.getRequiredEngineVersion();
         boolean v2 = !requiredVersion.startsWith("1");
-        if (dictionaryInfo.getEncrypted().equals("3")) {
-            throw new MDException("Unknown encryption algorithm found.");
-        }
-        boolean encrypted = "2".equals(dictionaryInfo.getEncrypted());
+        int encrypt = Integer.parseInt(dictionaryInfo.getEncrypted());
+        boolean headerEncrypted = (encrypt & 0x01) > 0;
         mdInputStream.seek(dictionaryInfo.getKeyBlockPosition());
+        byte[] password = new byte[32];
         byte[] word = new byte[4];
         if (v2) {
-            Adler32 adler32 = new Adler32();
-            keyNumBlocks = Utils.readLong(mdInputStream, adler32);
-            keySum = Utils.readLong(mdInputStream, adler32);
-            keyIndexDecompLen = Utils.readLong(mdInputStream, adler32);
-            keyIndexCompLen = Utils.readLong(mdInputStream, adler32);
-            keyBlocksLen = Utils.readLong(mdInputStream, adler32);
-            mdInputStream.readFully(word);
-            int checksum = Utils.byteArrayToInt(word);
-            if (adler32.getValue() != checksum) {
-                throw new MDException("checksum error.");
+            if (headerEncrypted) {
+                byte[] buf = new byte[40];
+                mdInputStream.readFully(buf);
+                byte[] decrypted = Utils.decryptKeyHeader(buf, password);
+                // implement me.
+            } else {
+                Adler32 adler32 = new Adler32();
+                keyNumBlocks = Utils.readLong(mdInputStream, adler32);
+                keySum = Utils.readLong(mdInputStream, adler32);
+                keyIndexDecompLen = Utils.readLong(mdInputStream, adler32);
+                keyIndexCompLen = Utils.readLong(mdInputStream, adler32);
+                keyBlocksLen = Utils.readLong(mdInputStream, adler32);
+                mdInputStream.readFully(word);
+                int checksum = Utils.byteArrayToInt(word);
+                if (adler32.getValue() != checksum) {
+                    throw new MDException("checksum error.");
+                }
             }
         } else {
             keyNumBlocks = Utils.readLong(mdInputStream);
@@ -123,7 +127,8 @@ class MdxParser {
             keyIndexCompLen = Utils.readLong(mdInputStream);
             keyBlocksLen = Utils.readLong(mdInputStream);
         }
-        return parseKeyBlock(v2, encoding, encrypted);
+        boolean indexEncrypted = (encrypt & 0x02) > 0;
+        return parseKeyBlock(v2, encoding, indexEncrypted);
     }
 
     /**
@@ -188,7 +193,6 @@ class MdxParser {
             }
         } else {
             for (int i = 0; i < keyNumBlocks; i++) {
-                byte[] b = new byte[1];
                 numEntries[i] = (int) Utils.readLong(mdInputStream);
                 int firstSize = Utils.readByte(mdInputStream);
                 firstKeys.add(Utils.readString(mdInputStream, firstSize, encoding));
