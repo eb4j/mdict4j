@@ -18,6 +18,7 @@
 
 package io.github.eb4j.mdict.data;
 
+import io.github.eb4j.mdict.MDException;
 import org.trie4j.MapTrie;
 import org.trie4j.patricia.MapPatriciaTrie;
 
@@ -35,7 +36,7 @@ public final class DictionaryDataBuilder<T> {
      * build DictionaryData POJO.
      * @return DictionaryData immutable object.
      */
-    public DictionaryData<T> build() {
+    public DictionaryData<T> build() throws MDException {
         return new DictionaryData<>(temp);
     }
 

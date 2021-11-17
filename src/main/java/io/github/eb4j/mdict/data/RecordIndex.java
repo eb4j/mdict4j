@@ -18,6 +18,8 @@
 
 package io.github.eb4j.mdict.data;
 
+import java.util.Arrays;
+
 /**
  * POJO of record index.
  */
@@ -30,10 +32,10 @@ public final class RecordIndex {
 
     public RecordIndex(final long[] recordCompSize, final long[] recordDecompSize, final long[] recordOffsetComp,
                        final long[] recordOffsetDecomp, final long recordNumEntries) {
-        this.recordCompSize = recordCompSize;
-        this.recordDecompSize = recordDecompSize;
-        this.recordOffsetComp = recordOffsetComp;
-        this.recordOffsetDecomp = recordOffsetDecomp;
+        this.recordCompSize = Arrays.copyOf(recordCompSize, recordCompSize.length);
+        this.recordDecompSize = Arrays.copyOf(recordDecompSize, recordDecompSize.length);
+        this.recordOffsetComp = Arrays.copyOf(recordOffsetComp, recordOffsetComp.length);
+        this.recordOffsetDecomp = Arrays.copyOf(recordOffsetDecomp, recordOffsetDecomp.length);
         this.recordNumEntries = recordNumEntries;
     }
 
@@ -45,8 +47,8 @@ public final class RecordIndex {
         return recordDecompSize[index];
     }
 
-    public long[] getRecordOffsetDecomp() {
-        return recordOffsetDecomp;
+    public long getRecordOffsetDecomp(final int index) {
+        return recordOffsetDecomp[index];
     }
 
     public long getCompOffset(final int index) {
@@ -56,4 +58,26 @@ public final class RecordIndex {
     public long getRecordNumEntries() {
         return recordNumEntries;
     }
+
+    public int searchOffsetIndex(final long off) {
+        int start = 0;
+        int end = recordOffsetDecomp.length - 1;
+        do {
+            int middle = (start + end) / 2;
+            if (middle == recordOffsetDecomp.length - 1) {
+                return middle;
+            }
+            long begin = recordOffsetDecomp[middle];
+            long rend = recordOffsetDecomp[middle + 1];
+            if (begin <= off && off < rend) {
+                return middle;
+            } else if (off < begin) {
+                end = middle;
+            } else {
+                start = middle;
+            }
+        } while (start <= end);
+        return -1;
+    }
+
 }

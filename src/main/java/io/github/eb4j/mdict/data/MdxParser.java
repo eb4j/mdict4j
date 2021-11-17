@@ -219,13 +219,18 @@ class MdxParser {
             throw new MDException("Block size error.");
         }
         DictionaryDataBuilder<Object> newDataBuilder = new DictionaryDataBuilder<>();
+        long totalKeys = 0;
         for (int i = 0; i < keyNumBlocks; i++) {
             MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i], false);
             for (int j = 0; j < numEntries[i]; j++) {
                 long offset = Utils.readLong(blockIns);
                 String keytext = Utils.readCString(blockIns, encoding);
                 newDataBuilder.add(keytext, offset);
+                totalKeys++;
             }
+        }
+        if (totalKeys != keySum) {
+            throw new MDException("Invalid number of keys");
         }
         return newDataBuilder.build();
     }

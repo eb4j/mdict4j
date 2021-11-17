@@ -46,7 +46,8 @@ public class Dictionary {
     private final int encrypted;
     private final boolean keyCaseSensitive;
 
-    public Dictionary(final DictionaryInfo info, final DictionaryData<Object> index, final RecordIndex recordIndex, final MDInputStream mdInputStream) {
+    public Dictionary(final DictionaryInfo info, final DictionaryData<Object> index, final RecordIndex recordIndex,
+                      final MDInputStream mdInputStream) {
         dictionaryData = index;
         this.recordIndex = recordIndex;
         this.mdInputStream = mdInputStream;
@@ -104,9 +105,8 @@ public class Dictionary {
     public String getText(final Long offset) throws MDException {
         String result = null;
         // calculate block index and seek it
-        long[] offsets = recordIndex.getRecordOffsetDecomp();
-        int index = searchOffsets(offsets, offset);
-        long skipSize = offset - offsets[index];
+        int index = recordIndex.searchOffsetIndex(offset);
+        long skipSize = offset - recordIndex.getRecordOffsetDecomp(index);
         try {
             mdInputStream.seek(recordIndex.getCompOffset(index));
         } catch (IOException e) {
@@ -115,35 +115,15 @@ public class Dictionary {
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
         try (MDBlockInputStream decompressedStream = Utils.decompress(mdInputStream, compSize, decompSize, false)) {
-            decompressedStream.skip(skipSize);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
-                    (int) decompSize);
-            result = bufferedReader.readLine();
-            return result;
+            long pos = decompressedStream.skip(skipSize);
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
+                    (int) decompSize)) {
+                result = bufferedReader.readLine();
+                return result;
+            }
         } catch (DataFormatException | IOException e) {
             throw new MDException("data decompression error.", e);
         }
-    }
-
-    public int searchOffsets(final long[] offsets, final long off) {
-        int start = 0;
-        int end = offsets.length - 1;
-        do {
-            int middle = (start + end) / 2;
-            if (middle == offsets.length - 1) {
-                return middle;
-            }
-            long begin = offsets[middle];
-            long rend = offsets[middle + 1];
-            if (begin <= off && off < rend) {
-                return middle;
-            } else if (off < begin) {
-                end = middle;
-            } else {
-                start = middle;
-            }
-        } while (start <= end);
-        return -1;
     }
 
     public static Dictionary loadData(final String mdxFile) throws MDException {
