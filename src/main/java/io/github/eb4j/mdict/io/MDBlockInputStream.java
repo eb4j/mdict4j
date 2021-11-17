@@ -18,18 +18,19 @@
 
 package io.github.eb4j.mdict.io;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-public class MDBlockInputStream extends InputStream {
+public class MDBlockInputStream extends MDInputStream {
     protected final ByteArrayInputStream byteArrayInputStream;
 
-    public MDBlockInputStream(final ByteArrayInputStream byteArrayInputStream) {
+     public MDBlockInputStream(final ByteArrayInputStream byteArrayInputStream) {
         this.byteArrayInputStream = byteArrayInputStream;
     }
 
-    public void readFully(final byte[] b) throws IOException {
+    public void readFully(@NotNull final byte[] b) throws IOException {
         int r = byteArrayInputStream.read(b);
         if (r < b.length) {
             throw new IOException("Cannot read fully.");

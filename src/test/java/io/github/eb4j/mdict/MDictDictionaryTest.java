@@ -16,9 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
-import io.github.eb4j.mdict.MDException;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
@@ -29,11 +28,11 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class DictionaryTest {
+class MDictDictionaryTest {
 
     @Test
     void loadDictionary() throws URISyntaxException, MDException {
-        Dictionary dictionary = Dictionary.loadData(
+        MDictDictionary dictionary = MDictDictionary.loadDicitonary(
                 Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath(), null);
         assertNotNull(dictionary);
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());

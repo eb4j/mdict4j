@@ -18,51 +18,10 @@
 
 package io.github.eb4j.mdict.io;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.InputStream;
 
-public class MDInputStream implements AutoCloseable {
-
-    private final RandomAccessFile file;
-
-    public MDInputStream(final String filename) throws FileNotFoundException {
-        file = new RandomAccessFile(filename, "r");
-    }
-
-    public void seek(final long pos) throws IOException {
-        file.seek(pos);
-    }
-
-    public long tell() throws IOException {
-        return file.getFilePointer();
-    }
-
-    public int read() throws IOException {
-        return file.read();
-    }
-
-    public void readFully(final byte[] b) throws IOException {
-        file.readFully(b);
-    }
-
-    public int read(final byte[]  b) throws IOException {
-        return file.read(b);
-    }
-
-    public void peek(final byte[] b) throws IOException {
-        long pos = file.getFilePointer();
-        file.readFully(b);
-        file.seek(pos);
-    }
-
-    @Override
-    public void close() throws IOException {
-        file.close();
-    }
-
-    public void skip(final int i) throws IOException {
-        byte[] buf = new byte[i];
-        file.readFully(buf);
-    }
+public abstract class MDInputStream extends InputStream {
+    public abstract void readFully(final byte[] b) throws IOException;
+    public abstract void skip(final int i) throws IOException;
 }

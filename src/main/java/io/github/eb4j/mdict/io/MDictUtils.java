@@ -44,22 +44,22 @@ import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-public final class Utils {
+public final class MDictUtils {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    private Utils() {
+    private MDictUtils() {
     }
 
-    public static long readLong(final MDInputStream mdInputStream) throws IOException {
+    public static long readLong(final MDFileInputStream mdInputStream) throws IOException {
         byte[] dWord = new byte[8];
         mdInputStream.readFully(dWord);
         return byteArrayToLong(dWord);
     }
 
-    public static long readLong(final MDInputStream mdInputStream, final Adler32 adler32) throws IOException {
+    public static long readLong(final MDFileInputStream mdInputStream, final Adler32 adler32) throws IOException {
         byte[] dWord = new byte[8];
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
@@ -73,29 +73,22 @@ public final class Utils {
         return byteArrayToLong(dWord);
     }
 
-    public static long readLong(final MDBlockInputStream mdInputStream) throws IOException {
+    public static long readLong(final MDInputStream mdInputStream) throws IOException {
         byte[] dWord = new byte[8];
         mdInputStream.readFully(dWord);
         return byteArrayToLong(dWord);
     }
 
-    public static int readByte(final MDInputStream mdInputStream) throws IOException {
+    public static int readByte(final MDFileInputStream mdInputStream) throws IOException {
         byte[] b = new byte[1];
         mdInputStream.readFully(b);
         return b[0] & 0xff;
     }
 
-    public static short readShort(final MDBlockInputStream mdBlockInputStream) throws IOException {
+    public static short readShort(final MDInputStream mdBlockInputStream) throws IOException {
         byte[] bytes = new byte[2];
         mdBlockInputStream.readFully(bytes);
         return byteArrayToShort(bytes);
-    }
-
-    public static String readString(final MDBlockInputStream mdInputStream, final int size, final Charset encoding)
-            throws IOException {
-        byte[] bytes = new byte[size];
-        mdInputStream.readFully(bytes);
-        return new String(bytes, encoding);
     }
 
     public static String readString(final MDInputStream mdInputStream, final int size, final Charset encoding)
@@ -105,8 +98,15 @@ public final class Utils {
         return new String(bytes, encoding);
     }
 
-    public static String readCString(final MDBlockInputStream mdInputStream, final Charset encoding)
-            throws MDException {
+    public static String readString(final MDFileInputStream mdInputStream, final int size, final Charset encoding)
+            throws IOException {
+        byte[] bytes = new byte[size];
+        mdInputStream.readFully(bytes);
+        return new String(bytes, encoding);
+    }
+
+    public static String readCString(final MDInputStream mdInputStream, final Charset encoding)
+            throws MDException, IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         if (StandardCharsets.UTF_16LE.equals(encoding) || StandardCharsets.UTF_16.equals(encoding)) {
             byte[] buf = new byte[2];
@@ -132,8 +132,8 @@ public final class Utils {
         return new String(baos.toByteArray(), encoding);
     }
 
-    public static MDBlockInputStream decompress(final MDInputStream inputStream, final long compSize,
-                                                  final long decompSize, final boolean encrypted)
+    public static MDInputStream decompress(final MDFileInputStream inputStream, final long compSize,
+                                                final long decompSize, final boolean encrypted)
             throws IOException, MDException, DataFormatException {
         int flag = inputStream.read();
         inputStream.skip(3);
@@ -166,7 +166,7 @@ public final class Utils {
                 }
                 Adler32 adler32 = new Adler32();
                 adler32.update(output);
-                if (adler32.getValue() != Utils.byteArrayToInt(checksum)) {
+                if (adler32.getValue() != MDictUtils.byteArrayToInt(checksum)) {
                     throw new MDException("Decompression checksum error.");
                 }
                 return new MDBlockInputStream(new ByteArrayInputStream(output));

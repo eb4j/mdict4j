@@ -16,10 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
-import io.github.eb4j.mdict.MDException;
-import io.github.eb4j.mdict.io.MDInputStream;
+import io.github.eb4j.mdict.io.MDFileInputStream;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
@@ -30,14 +29,14 @@ import java.util.zip.DataFormatException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MdxParserTest {
+class MDictMDXParserTest {
 
     @Test
     void parseTestHeader() throws FileNotFoundException, URISyntaxException, MDException {
-        MDInputStream inputStream = new MDInputStream(Objects.requireNonNull(
+        MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
-        MdxParser parser = new MdxParser(inputStream);
-        DictionaryInfo dictionaryInfo = parser.parseHeader();
+        MDictMDXParser parser = new MDictMDXParser(inputStream);
+        MDictDictionaryInfo dictionaryInfo = parser.parseHeader();
         assertEquals("Html", dictionaryInfo.getFormat());
         assertEquals("2.0", dictionaryInfo.getRequiredEngineVersion());
         assertEquals(630, dictionaryInfo.getKeyBlockPosition());
@@ -46,9 +45,9 @@ class MdxParserTest {
 
     @Test
     void parseTestIndex() throws MDException, URISyntaxException, IOException, DataFormatException {
-        MDInputStream inputStream = new MDInputStream(Objects.requireNonNull(
+        MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
-        MdxParser parser = new MdxParser(inputStream);
+        MDictMDXParser parser = new MDictMDXParser(inputStream);
         parser.parseHeader();
         DictionaryData<Object> index = parser.parseIndex(null);
         assertEquals(100, index.size());

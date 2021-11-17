@@ -16,9 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
-import io.github.eb4j.mdict.MDException;
 import org.trie4j.MapTrie;
 import org.trie4j.patricia.MapPatriciaTrie;
 

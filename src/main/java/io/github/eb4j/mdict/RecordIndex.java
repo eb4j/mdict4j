@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
 import java.util.Arrays;
 

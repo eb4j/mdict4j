@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -24,7 +24,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 
 @JacksonXmlRootElement(localName = "Dictionary")
-public final class DictionaryInfo {
+public final class MDictDictionaryInfo {
     @JacksonXmlProperty(localName = "GeneratedByEngineVersion", isAttribute = true)
     private String generatedByEngineVersion;
     @JacksonXmlProperty(localName = "RequiredEngineVersion", isAttribute = true)

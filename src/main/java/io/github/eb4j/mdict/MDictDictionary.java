@@ -16,24 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
-import io.github.eb4j.mdict.MDException;
-import io.github.eb4j.mdict.io.MDBlockInputStream;
+import io.github.eb4j.mdict.io.MDFileInputStream;
 import io.github.eb4j.mdict.io.MDInputStream;
-import io.github.eb4j.mdict.io.Utils;
+import io.github.eb4j.mdict.io.MDictUtils;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import java.util.zip.DataFormatException;
 
-public class Dictionary {
-    private final MDInputStream mdInputStream;
+public class MDictDictionary {
+    private final MDFileInputStream mdInputStream;
     private final DictionaryData<Object> dictionaryData;
     private final RecordIndex recordIndex;
 
@@ -46,8 +48,8 @@ public class Dictionary {
     private final int encrypted;
     private final boolean keyCaseSensitive;
 
-    public Dictionary(final DictionaryInfo info, final DictionaryData<Object> index, final RecordIndex recordIndex,
-                      final MDInputStream mdInputStream) {
+    public MDictDictionary(final MDictDictionaryInfo info, final DictionaryData<Object> index, final RecordIndex recordIndex,
+                           final MDFileInputStream mdInputStream) {
         dictionaryData = index;
         this.recordIndex = recordIndex;
         this.mdInputStream = mdInputStream;
@@ -99,11 +101,15 @@ public class Dictionary {
     }
 
     public List<Map.Entry<String, Object>> getEntries(final String word) {
+        return dictionaryData.lookUp(word);
+    }
+
+    public List<Map.Entry<String, Object>> getEntriesPredictive(final String word) {
         return dictionaryData.lookUpPredictive(word);
     }
 
     public String getText(final Long offset) throws MDException {
-        String result = null;
+        String result;
         // calculate block index and seek it
         int index = recordIndex.searchOffsetIndex(offset);
         long skipSize = offset - recordIndex.getRecordOffsetDecomp(index);
@@ -114,8 +120,8 @@ public class Dictionary {
         }
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
-        try (MDBlockInputStream decompressedStream = Utils.decompress(mdInputStream, compSize, decompSize, false)) {
-            long ignored = decompressedStream.skip(skipSize);
+        try (MDInputStream decompressedStream = MDictUtils.decompress(mdInputStream, compSize, decompSize, false)) {
+            decompressedStream.skip((int)skipSize);
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
                     (int) decompSize)) {
                 result = bufferedReader.readLine();
@@ -126,24 +132,46 @@ public class Dictionary {
         }
     }
 
-    public static Dictionary loadData(final String mdxFile, final byte[] keyword) throws MDException {
-        DictionaryInfo info;
+    /**
+     * parse dictionary.key file.
+     * @param keyFile dictionary.key file.
+     * @return byte[] password data
+     * @throws IOException when file read failed.
+     */
+    public static byte[] loadDictionaryKey(final File keyFile) throws IOException {
+        // File keyFile = new File(parent, "dictionary.key");
+        byte[] keydata = new byte[32];
+        if (keyFile.isFile() && keyFile.canRead()) {
+            try (Stream<String> lines = Files.lines(keyFile.toPath())) {
+                String first = lines.findFirst().orElse(null);
+                if (first != null) {
+                    first = first.substring(0, 64);
+                    byte[] temp = Hex.decode(first);
+                    System.arraycopy(temp, 0, keydata, 0, 32);
+                }
+            }
+        }
+        return keydata;
+    }
+
+    public static MDictDictionary loadDicitonary(final String mdxFile, final byte[] keyword) throws MDException {
+        MDictDictionaryInfo info;
         DictionaryData<Object> index;
         RecordIndex record;
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
         }
-        MDInputStream mdInputStream;
+        MDFileInputStream mdInputStream;
         try {
-            mdInputStream = new MDInputStream(mdxFile);
-            MdxParser parser = new MdxParser(mdInputStream);
+            mdInputStream = new MDFileInputStream(mdxFile);
+            MDictMDXParser parser = new MDictMDXParser(mdInputStream);
             info = parser.parseHeader();
             index = parser.parseIndex(keyword);
             record = parser.parseRecordBlock();
         } catch (IOException | DataFormatException e) {
             throw new MDException("Dictionary data read error", e);
         }
-        return new Dictionary(info, index, record, mdInputStream);
+        return new MDictDictionary(info, index, record, mdInputStream);
     }
 }

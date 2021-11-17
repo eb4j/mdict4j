@@ -1,7 +1,6 @@
 /*
  * MD4J, a parser library for MDict format.
  * Copyright (C) 2021 Hiroshi Miura.
- *               2015-2016 Hiroshi Miura, Aaron Madlon-Kay
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
 import org.trie4j.MapTrie;
 import org.trie4j.doublearray.MapDoubleArray;

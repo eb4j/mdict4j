@@ -16,14 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.eb4j.mdict.data;
+package io.github.eb4j.mdict;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import io.github.eb4j.mdict.MDException;
 import io.github.eb4j.mdict.io.MDBlockInputStream;
+import io.github.eb4j.mdict.io.MDFileInputStream;
 import io.github.eb4j.mdict.io.MDInputStream;
-import io.github.eb4j.mdict.io.Utils;
+import io.github.eb4j.mdict.io.MDictUtils;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -34,10 +34,10 @@ import java.util.List;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
-class MdxParser {
+class MDictMDXParser {
 
-    private final MDInputStream mdInputStream;
-    private DictionaryInfo dictionaryInfo;
+    private final MDFileInputStream mdInputStream;
+    private MDictDictionaryInfo dictionaryInfo;
     private long keyNumBlocks;
     private long keySum;
     private long keyIndexDecompLen = 0;  // used only when v2
@@ -49,7 +49,7 @@ class MdxParser {
     private final List<String> firstKeys = new ArrayList<>();
     private final List<String> lastKeys = new ArrayList<>();
 
-    MdxParser(final MDInputStream inputStream) {
+    MDictMDXParser(final MDFileInputStream inputStream) {
         mdInputStream = inputStream;
     }
 
@@ -59,26 +59,26 @@ class MdxParser {
      * @return DictionaryInfo object.
      * @throws MDException when read or parse error.
      */
-    DictionaryInfo parseHeader() throws MDException {
+    MDictDictionaryInfo parseHeader() throws MDException {
         byte[] word = new byte[4];
         try {
             // Header
             // LEN + UTF-16LE string + checksum
             mdInputStream.seek(0);
             mdInputStream.readFully(word);
-            int headerStrLength = Utils.byteArrayToInt(word);
+            int headerStrLength = MDictUtils.byteArrayToInt(word);
             byte[] headerStringBytes = new byte[headerStrLength];
             mdInputStream.readFully(headerStringBytes);
             Adler32 adler32 = new Adler32();
             adler32.update(headerStringBytes);
             mdInputStream.readFully(word);
-            long checksum = Integer.toUnsignedLong(Utils.byteArrayToInt(word, ByteOrder.LITTLE_ENDIAN));
+            long checksum = Integer.toUnsignedLong(MDictUtils.byteArrayToInt(word, ByteOrder.LITTLE_ENDIAN));
             if (checksum != adler32.getValue()) {
                 throw new MDException("checksum error.");
             }
             String headerString = new String(headerStringBytes, StandardCharsets.UTF_16LE);
             ObjectMapper mapper = new XmlMapper();
-            dictionaryInfo = mapper.readValue(headerString, DictionaryInfo.class);
+            dictionaryInfo = mapper.readValue(headerString, MDictDictionaryInfo.class);
             long keyBlockPosition = mdInputStream.tell();
             dictionaryInfo.setKeyBlockPosition(keyBlockPosition);
         } catch (IOException e) {
@@ -105,36 +105,36 @@ class MdxParser {
             if (headerEncrypted) {
                 byte[] buf = new byte[40];
                 mdInputStream.readFully(buf);
-                MDBlockInputStream decrypted = Utils.decompressKeyHeader(buf, password);
+                MDBlockInputStream decrypted = MDictUtils.decompressKeyHeader(buf, password);
                 Adler32 adler32 = new Adler32();
-                keyNumBlocks = Utils.readLong(decrypted, adler32);
-                keySum = Utils.readLong(decrypted, adler32);
-                keyIndexDecompLen = Utils.readLong(decrypted, adler32);
-                keyIndexCompLen = Utils.readLong(decrypted, adler32);
-                keyBlocksLen = Utils.readLong(decrypted, adler32);
+                keyNumBlocks = MDictUtils.readLong(decrypted, adler32);
+                keySum = MDictUtils.readLong(decrypted, adler32);
+                keyIndexDecompLen = MDictUtils.readLong(decrypted, adler32);
+                keyIndexCompLen = MDictUtils.readLong(decrypted, adler32);
+                keyBlocksLen = MDictUtils.readLong(decrypted, adler32);
                 mdInputStream.readFully(word);
-                int checksum = Utils.byteArrayToInt(word);
+                int checksum = MDictUtils.byteArrayToInt(word);
                 if (adler32.getValue() != checksum) {
                     throw new MDException("checksum error.");
                 }
             } else {
                 Adler32 adler32 = new Adler32();
-                keyNumBlocks = Utils.readLong(mdInputStream, adler32);
-                keySum = Utils.readLong(mdInputStream, adler32);
-                keyIndexDecompLen = Utils.readLong(mdInputStream, adler32);
-                keyIndexCompLen = Utils.readLong(mdInputStream, adler32);
-                keyBlocksLen = Utils.readLong(mdInputStream, adler32);
+                keyNumBlocks = MDictUtils.readLong(mdInputStream, adler32);
+                keySum = MDictUtils.readLong(mdInputStream, adler32);
+                keyIndexDecompLen = MDictUtils.readLong(mdInputStream, adler32);
+                keyIndexCompLen = MDictUtils.readLong(mdInputStream, adler32);
+                keyBlocksLen = MDictUtils.readLong(mdInputStream, adler32);
                 mdInputStream.readFully(word);
-                int checksum = Utils.byteArrayToInt(word);
+                int checksum = MDictUtils.byteArrayToInt(word);
                 if (adler32.getValue() != checksum) {
                     throw new MDException("checksum error.");
                 }
             }
         } else {
-            keyNumBlocks = Utils.readLong(mdInputStream);
-            keySum = Utils.readLong(mdInputStream);
-            keyIndexCompLen = Utils.readLong(mdInputStream);
-            keyBlocksLen = Utils.readLong(mdInputStream);
+            keyNumBlocks = MDictUtils.readLong(mdInputStream);
+            keySum = MDictUtils.readLong(mdInputStream);
+            keyIndexCompLen = MDictUtils.readLong(mdInputStream);
+            keyBlocksLen = MDictUtils.readLong(mdInputStream);
         }
         boolean indexEncrypted = (encrypt & 0x02) > 0;
         return parseKeyBlock(v2, encoding, indexEncrypted);
@@ -186,31 +186,31 @@ class MdxParser {
         long[] keyDecompSize = new long[(int) keyNumBlocks];
         long sum = 0;
         if (v2) {
-            MDBlockInputStream indexDs = Utils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen, encrypted);
+            MDInputStream indexDs = MDictUtils.decompress(mdInputStream, keyIndexCompLen, keyIndexDecompLen, encrypted);
             for (int i = 0; i < keyNumBlocks; i++) {
                 indexDs.readFully(dWord);
-                numEntries[i] = (int) Utils.byteArrayToLong(dWord);
-                short firstSize = Utils.readShort(indexDs);
-                firstKeys.add(Utils.readString(indexDs, firstSize, encoding));
+                numEntries[i] = (int) MDictUtils.byteArrayToLong(dWord);
+                short firstSize = MDictUtils.readShort(indexDs);
+                firstKeys.add(MDictUtils.readString(indexDs, firstSize, encoding));
                 indexDs.skip(1);
-                short lastSize = Utils.readShort(indexDs);
-                lastKeys.add(Utils.readString(indexDs, lastSize, encoding));
+                short lastSize = MDictUtils.readShort(indexDs);
+                lastKeys.add(MDictUtils.readString(indexDs, lastSize, encoding));
                 indexDs.skip(1);
-                keyCompSize[i] = Utils.readLong(indexDs);
-                keyDecompSize[i] = Utils.readLong(indexDs);
+                keyCompSize[i] = MDictUtils.readLong(indexDs);
+                keyDecompSize[i] = MDictUtils.readLong(indexDs);
                 sum += keyCompSize[i];
             }
         } else {
             for (int i = 0; i < keyNumBlocks; i++) {
-                numEntries[i] = (int) Utils.readLong(mdInputStream);
-                int firstSize = Utils.readByte(mdInputStream);
-                firstKeys.add(Utils.readString(mdInputStream, firstSize, encoding));
+                numEntries[i] = (int) MDictUtils.readLong(mdInputStream);
+                int firstSize = MDictUtils.readByte(mdInputStream);
+                firstKeys.add(MDictUtils.readString(mdInputStream, firstSize, encoding));
                 mdInputStream.skip(1);
-                int lastSize = Utils.readByte(mdInputStream);
-                lastKeys.add(Utils.readString(mdInputStream, lastSize, encoding));
+                int lastSize = MDictUtils.readByte(mdInputStream);
+                lastKeys.add(MDictUtils.readString(mdInputStream, lastSize, encoding));
                 mdInputStream.skip(1);
-                keyCompSize[i] = Utils.readLong(mdInputStream);
-                keyDecompSize[i] = Utils.readLong(mdInputStream);
+                keyCompSize[i] = MDictUtils.readLong(mdInputStream);
+                keyDecompSize[i] = MDictUtils.readLong(mdInputStream);
                 sum += keyCompSize[i];
             }
         }
@@ -220,10 +220,10 @@ class MdxParser {
         DictionaryDataBuilder<Object> newDataBuilder = new DictionaryDataBuilder<>();
         long totalKeys = 0;
         for (int i = 0; i < keyNumBlocks; i++) {
-            MDBlockInputStream blockIns = Utils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i], false);
+            MDInputStream blockIns = MDictUtils.decompress(mdInputStream, keyCompSize[i], keyDecompSize[i], false);
             for (int j = 0; j < numEntries[i]; j++) {
-                long offset = Utils.readLong(blockIns);
-                String keytext = Utils.readCString(blockIns, encoding);
+                long offset = MDictUtils.readLong(blockIns);
+                String keytext = MDictUtils.readCString(blockIns, encoding);
                 newDataBuilder.add(keytext, offset);
                 totalKeys++;
             }
@@ -235,22 +235,22 @@ class MdxParser {
     }
 
     public RecordIndex parseRecordBlock() throws MDException, IOException {
-        long recordNumBlocks = Utils.readLong(mdInputStream);
+        long recordNumBlocks = MDictUtils.readLong(mdInputStream);
         long[] recordCompSize = new long[(int) recordNumBlocks];
         long[] recordDecompSize = new long[(int) recordNumBlocks];
         long[] recordOffsetComp = new long[(int) recordNumBlocks];
         long[] recordOffsetDecomp = new long[(int) recordNumBlocks];
-        long recordNumEntries = Utils.readLong(mdInputStream);
-        long recordIndexLen = Utils.readLong(mdInputStream);
-        long recordBlockLen = Utils.readLong(mdInputStream);
+        long recordNumEntries = MDictUtils.readLong(mdInputStream);
+        long recordIndexLen = MDictUtils.readLong(mdInputStream);
+        long recordBlockLen = MDictUtils.readLong(mdInputStream);
         long offsetDecomp = 0;
         long offsetComp = mdInputStream.tell() + recordIndexLen;
         long endOffsetComp = offsetComp + recordBlockLen;
         for (int i = 0; i < recordNumBlocks; i++) {
-            recordCompSize[i] = Utils.readLong(mdInputStream);
+            recordCompSize[i] = MDictUtils.readLong(mdInputStream);
             recordOffsetComp[i] = offsetComp;
             offsetComp += recordCompSize[i];
-            recordDecompSize[i] = Utils.readLong(mdInputStream);
+            recordDecompSize[i] = MDictUtils.readLong(mdInputStream);
             recordOffsetDecomp[i] = offsetDecomp;
             offsetDecomp += recordDecompSize[i];
         }
