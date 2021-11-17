@@ -45,7 +45,7 @@ class DictionaryTest {
         for (Map.Entry<String, Object> entry: dictionary.getEntries("z")) {
             String word = entry.getKey();
             Object value = entry.getValue();
-            String text = dictionary.getText((long) value);
+            String text = dictionary.getText((Long) value);
             assertNotNull(text);
         }
     }

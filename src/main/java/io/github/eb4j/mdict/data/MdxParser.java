@@ -253,7 +253,8 @@ class MdxParser {
         if (offsetComp != endOffsetComp) {
             throw new MDException("Wrong index position.");
         }
-        return new RecordIndex(recordCompSize, recordDecompSize, recordOffsetComp, recordOffsetDecomp, recordNumEntries);
+        return new RecordIndex(recordCompSize, recordDecompSize, recordOffsetComp, recordOffsetDecomp,
+                recordNumEntries);
     }
 
 }
