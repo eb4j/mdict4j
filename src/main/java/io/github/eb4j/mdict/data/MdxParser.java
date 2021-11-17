@@ -224,22 +224,25 @@ class MdxParser {
         long recordNumBlocks = Utils.readLong(mdInputStream);
         long[] recordCompSize = new long[(int) recordNumBlocks];
         long[] recordDecompSize = new long[(int) recordNumBlocks];
-        long[] recordOffsets = new long[(int) recordNumBlocks];
+        long[] recordOffsetComp = new long[(int) recordNumBlocks];
+        long[] recordOffsetDecomp = new long[(int) recordNumBlocks];
         long recordNumEntries = Utils.readLong(mdInputStream);
         long recordIndexLen = Utils.readLong(mdInputStream);
         long recordBlockLen = Utils.readLong(mdInputStream);
-        long offset = mdInputStream.tell() + recordIndexLen;
-        long endOffset = offset + recordBlockLen;
+        long offsetComp = mdInputStream.tell() + recordIndexLen;
+        long offsetDecomp = offsetComp;
+        long endOffsetComp = offsetComp + recordBlockLen;
         for (int i = 0; i < recordNumBlocks; i++) {
             recordCompSize[i] = Utils.readLong(mdInputStream);
+            recordOffsetComp[i] = offsetComp;
             recordDecompSize[i] = Utils.readLong(mdInputStream);
-            recordOffsets[i] = offset;
-            offset += recordCompSize[i];
+            recordOffsetDecomp[i] = offsetDecomp;
+            offsetDecomp += recordDecompSize[i];
         }
-        if (offset != endOffset) {
+        if (offsetComp != endOffsetComp) {
             throw new MDException("Wrong index position.");
         }
-        return new RecordIndex(recordCompSize, recordDecompSize, recordOffsets, recordNumEntries);
+        return new RecordIndex(recordCompSize, recordDecompSize, recordOffsetComp, recordOffsetDecomp, recordNumEntries);
     }
 
 }

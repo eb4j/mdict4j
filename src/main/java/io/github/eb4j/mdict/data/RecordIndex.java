@@ -24,13 +24,16 @@ package io.github.eb4j.mdict.data;
 public final class RecordIndex {
     private final long[] recordCompSize;
     private final long[] recordDecompSize;
-    private final long[] recordOffsets;
+    private final long[] recordOffsetComp;
+    private final long[] recordOffsetDecomp;
     private final long recordNumEntries;
 
-    public RecordIndex(final long[] recordCompSize, final long[] recordDecompSize, final long[] recordOffsets, final long recordNumEntries) {
+    public RecordIndex(final long[] recordCompSize, final long[] recordDecompSize, final long[] recordOffsetComp,
+                       final long[] recordOffsetDecomp, final long recordNumEntries) {
         this.recordCompSize = recordCompSize;
         this.recordDecompSize = recordDecompSize;
-        this.recordOffsets = recordOffsets;
+        this.recordOffsetComp = recordOffsetComp;
+        this.recordOffsetDecomp = recordOffsetDecomp;
         this.recordNumEntries = recordNumEntries;
     }
 
@@ -42,8 +45,12 @@ public final class RecordIndex {
         return recordDecompSize[index];
     }
 
-    public long[] getRecordOffsets() {
-        return recordOffsets;
+    public long[] getRecordOffsetDecomp() {
+        return recordOffsetDecomp;
+    }
+
+    public long getCompOffset(final int index) {
+        return recordOffsetComp[index];
     }
 
     public long getRecordNumEntries() {
