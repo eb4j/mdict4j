@@ -52,12 +52,6 @@ public class MDFileInputStream extends MDInputStream implements AutoCloseable {
         return file.read(b);
     }
 
-    public void peek(@NotNull final byte[] b) throws IOException {
-        long pos = file.getFilePointer();
-        file.readFully(b);
-        file.seek(pos);
-    }
-
     @Override
     public void close() throws IOException {
         file.close();

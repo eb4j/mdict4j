@@ -48,8 +48,8 @@ public class MDictDictionary {
     private final int encrypted;
     private final boolean keyCaseSensitive;
 
-    public MDictDictionary(final MDictDictionaryInfo info, final DictionaryData<Object> index, final RecordIndex recordIndex,
-                           final MDFileInputStream mdInputStream) {
+    public MDictDictionary(final MDictDictionaryInfo info, final DictionaryData<Object> index,
+                           final RecordIndex recordIndex, final MDFileInputStream mdInputStream) {
         dictionaryData = index;
         this.recordIndex = recordIndex;
         this.mdInputStream = mdInputStream;
@@ -121,7 +121,7 @@ public class MDictDictionary {
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
         try (MDInputStream decompressedStream = MDictUtils.decompress(mdInputStream, compSize, decompSize, false)) {
-            decompressedStream.skip((int)skipSize);
+            decompressedStream.skip(skipSize);
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
                     (int) decompSize)) {
                 result = bufferedReader.readLine();

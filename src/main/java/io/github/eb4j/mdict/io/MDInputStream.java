@@ -22,6 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public abstract class MDInputStream extends InputStream {
-    public abstract void readFully(final byte[] b) throws IOException;
-    public abstract void skip(final int i) throws IOException;
+    public abstract void readFully(byte[] b) throws IOException;
+    public abstract void skip(int i) throws IOException;
 }

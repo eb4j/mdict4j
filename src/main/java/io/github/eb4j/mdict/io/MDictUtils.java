@@ -59,14 +59,7 @@ public final class MDictUtils {
         return byteArrayToLong(dWord);
     }
 
-    public static long readLong(final MDFileInputStream mdInputStream, final Adler32 adler32) throws IOException {
-        byte[] dWord = new byte[8];
-        mdInputStream.readFully(dWord);
-        adler32.update(dWord);
-        return byteArrayToLong(dWord);
-    }
-
-    public static long readLong(final MDBlockInputStream mdInputStream, final Adler32 adler32) throws IOException {
+    public static long readLong(final MDInputStream mdInputStream, final Adler32 adler32) throws IOException {
         byte[] dWord = new byte[8];
         mdInputStream.readFully(dWord);
         adler32.update(dWord);
@@ -92,13 +85,6 @@ public final class MDictUtils {
     }
 
     public static String readString(final MDInputStream mdInputStream, final int size, final Charset encoding)
-            throws IOException {
-        byte[] bytes = new byte[size];
-        mdInputStream.readFully(bytes);
-        return new String(bytes, encoding);
-    }
-
-    public static String readString(final MDFileInputStream mdInputStream, final int size, final Charset encoding)
             throws IOException {
         byte[] bytes = new byte[size];
         mdInputStream.readFully(bytes);
