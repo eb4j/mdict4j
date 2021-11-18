@@ -129,7 +129,14 @@ public final class MDictUtils {
         byte[] output;
         switch (flag) {
             case 0:
-                break;
+                input = new byte[(int) compSize - 8];
+                inputStream.readFully(input);
+                Adler32 adler32 = new Adler32();
+                adler32.update(input);
+                if (adler32.getValue() != MDictUtils.byteArrayToInt(checksum)) {
+                    throw new MDException("Checksum error.");
+                }
+                return new MDBlockInputStream(new ByteArrayInputStream(input));
             case 1:
                 input = new byte[(int) compSize - 8];
                 output = new byte[(int) decompSize];
@@ -148,9 +155,9 @@ public final class MDictUtils {
                     decompressor.decompress(input, 0, (int) compSize - 8, output, 0, outLen);
                 }
                 if (outLen.value != decompSize) {
-                    throw new MDException("Decompression size is differ.");
+                    throw new MDException("Decompression error, wrong size.");
                 }
-                Adler32 adler32 = new Adler32();
+                adler32 = new Adler32();
                 adler32.update(output);
                 if (adler32.getValue() != MDictUtils.byteArrayToInt(checksum)) {
                     throw new MDException("Decompression checksum error.");
@@ -184,7 +191,6 @@ public final class MDictUtils {
             default:
                 throw new MDException(String.format("Unknown compression level: %d", flag));
         }
-        throw new MDException("Unsupported data.");
     }
 
     public static byte[] decryptKeyIndex(final byte[] buffer, final byte[] salt)
