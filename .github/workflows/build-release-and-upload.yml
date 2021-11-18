@@ -1,4 +1,4 @@
-name: Upload Assets to github release and packages
+name: Upload Assets to OSSRH
 
 on:
   push:
