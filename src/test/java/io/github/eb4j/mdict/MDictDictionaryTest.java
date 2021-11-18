@@ -20,6 +20,7 @@ package io.github.eb4j.mdict;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -31,9 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class MDictDictionaryTest {
 
     @Test
-    void loadDictionary() throws URISyntaxException, MDException {
+    void loadDictionary() throws URISyntaxException, MDException, IOException {
         MDictDictionary dictionary = MDictDictionary.loadDicitonary(
-                Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath(), null);
+                Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath());
         assertNotNull(dictionary);
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
         assertEquals("Html", dictionary.getFormat());

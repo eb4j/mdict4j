@@ -132,35 +132,22 @@ public class MDictDictionary {
         }
     }
 
-    /**
-     * parse dictionary.key file.
-     * @param keyFile dictionary.key file.
-     * @return byte[] password data
-     * @throws IOException when file read failed.
-     */
-    public static byte[] loadDictionaryKey(final File keyFile) throws IOException {
-        // File keyFile = new File(parent, "dictionary.key");
-        byte[] keydata = new byte[32];
-        if (keyFile.isFile() && keyFile.canRead()) {
-            try (Stream<String> lines = Files.lines(keyFile.toPath())) {
-                String first = lines.findFirst().orElse(null);
-                if (first != null) {
-                    first = first.substring(0, 64);
-                    byte[] temp = Hex.decode(first);
-                    System.arraycopy(temp, 0, keydata, 0, 32);
-                }
-            }
-        }
-        return keydata;
-    }
-
-    public static MDictDictionary loadDicitonary(final String mdxFile, final byte[] keyword) throws MDException {
+    public static MDictDictionary loadDicitonary(final String mdxFile) throws MDException, IOException {
         MDictDictionaryInfo info;
         DictionaryData<Object> index;
         RecordIndex record;
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
+        }
+        File keyFile = new File(file.getParentFile(), "dictionary.key");
+        byte[] keyword = null;
+        if (keyFile.canRead()) {
+            try {
+                keyword = loadDictionaryKey(keyFile);
+            } catch (IOException ignored) {
+                // ignore keyfile loading
+            }
         }
         MDFileInputStream mdInputStream;
         try {
@@ -173,5 +160,26 @@ public class MDictDictionary {
             throw new MDException("Dictionary data read error", e);
         }
         return new MDictDictionary(info, index, record, mdInputStream);
+    }
+
+    /**
+     * parse dictionary.key file.
+     * @param keyFile dictionary.key file.
+     * @return byte[] password data
+     * @throws IOException when file read failed.
+     */
+    private static byte[] loadDictionaryKey(final File keyFile) throws IOException {
+        byte[] keydata = new byte[32];
+        if (keyFile.isFile() && keyFile.canRead()) {
+            try (Stream<String> lines = Files.lines(keyFile.toPath())) {
+                String first = lines.findFirst().orElse(null);
+                if (first != null) {
+                    first = first.substring(0, 64);
+                    byte[] temp = Hex.decode(first);
+                    System.arraycopy(temp, 0, keydata, 0, 32);
+                }
+            }
+        }
+        return keydata;
     }
 }
