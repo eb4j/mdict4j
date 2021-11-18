@@ -121,7 +121,10 @@ public class MDictDictionary {
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
         try (MDInputStream decompressedStream = MDictUtils.decompress(mdInputStream, compSize, decompSize, false)) {
-            decompressedStream.skip(skipSize);
+            long moved = decompressedStream.skip(skipSize);
+            if (moved != skipSize) {
+                throw new MDException("Decompressed data seems incorrect.");
+            }
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(decompressedStream, encoding),
                     (int) decompSize)) {
                 result = bufferedReader.readLine();
