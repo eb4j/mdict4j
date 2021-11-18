@@ -94,7 +94,7 @@ if (dotgit.exists()) {
                 pom {
                     name.set("URL protocol handler")
                     description.set("MDict parser for java")
-                    url.set("https://github.com/eb4j/md4j")
+                    url.set("https://github.com/eb4j/mdict4j")
                     licenses {
                         license {
                             name.set("The GNU General Public License, Version 3")
@@ -110,9 +110,9 @@ if (dotgit.exists()) {
                         }
                     }
                     scm {
-                        connection.set("scm:git:git://github.com/eb4j/md4j.git")
-                        developerConnection.set("scm:git:git://github.com/eb4j/md4j.git")
-                        url.set("https://github.com/eb4j/md4j")
+                        connection.set("scm:git:git://github.com/eb4j/mdict4j.git")
+                        developerConnection.set("scm:git:git://github.com/eb4j/mdict4j.git")
+                        url.set("https://github.com/eb4j/mdict4j")
                     }
                 }
             }
@@ -138,6 +138,8 @@ if (dotgit.exists()) {
     nexusPublishing {
         repositories {
             sonatype {
+                nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+                snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
                 username.set(System.getenv("SONATYPE_USER"))
                 password.set(System.getenv("SONATYPE_PASS"))
             }
