@@ -143,13 +143,18 @@ public class MDictDictionary {
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
         }
-        File keyFile = new File(file.getParentFile(), "dictionary.key");
+        String f = mdxFile;
+        if (f.endsWith(".mdx")) {
+            f = f.substring(0, f.length() - ".mdx".length());
+        }
+        String dictName = f;
+        File keyFile = new File( dictName + ".key");
         byte[] keyword = null;
         if (keyFile.canRead()) {
             try {
                 keyword = loadDictionaryKey(keyFile);
             } catch (IOException ignored) {
-                // ignore keyfile loading
+                // ignore keyfile loading failed.
             }
         }
         MDFileInputStream mdInputStream;
@@ -162,24 +167,25 @@ public class MDictDictionary {
         } catch (IOException | DataFormatException e) {
             throw new MDException("Dictionary data read error", e);
         }
+        File mddFile = new File(dictName + ".mdd");
         return new MDictDictionary(info, index, record, mdInputStream);
     }
 
     /**
-     * parse dictionary.key file.
+     * parse dictionary.key file and return 128-bit regcode.
      * @param keyFile dictionary.key file.
      * @return byte[] password data
      * @throws IOException when file read failed.
      */
     private static byte[] loadDictionaryKey(final File keyFile) throws IOException {
-        byte[] keydata = new byte[32];
+        byte[] keydata = new byte[16];
         if (keyFile.isFile() && keyFile.canRead()) {
             try (Stream<String> lines = Files.lines(keyFile.toPath())) {
                 String first = lines.findFirst().orElse(null);
                 if (first != null) {
-                    first = first.substring(0, 64);
+                    first = first.substring(0, 32);
                     byte[] temp = Hex.decode(first);
-                    System.arraycopy(temp, 0, keydata, 0, 32);
+                    System.arraycopy(temp, 0, keydata, 0, 16);
                 }
             }
         }
