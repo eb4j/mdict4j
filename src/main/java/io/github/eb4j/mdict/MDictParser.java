@@ -34,32 +34,51 @@ import java.util.List;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
-class MDictMDXParser {
+abstract class MDictParser {
 
-    private final MDFileInputStream mdInputStream;
-    private MDictDictionaryInfo dictionaryInfo;
-    private long keyNumBlocks;
-    private long keySum;
-    private long keyIndexDecompLen = 0;  // used only when v2
-    private long keyIndexCompLen;
-    private long keyBlocksLen;
+    protected final MDFileInputStream mdInputStream;
+    protected MDictDictionaryInfo dictionaryInfo;
 
-    private int[] numEntries;
+    protected long keyNumBlocks;
+    protected long keySum;
+    protected long keyIndexDecompLen = 0;  // used only when v2
+    protected long keyIndexCompLen;
+    protected long keyBlocksLen;
 
-    private final List<String> firstKeys = new ArrayList<>();
-    private final List<String> lastKeys = new ArrayList<>();
+    protected int[] numEntries;
 
-    MDictMDXParser(final MDFileInputStream mdInputStream) {
+    protected final List<String> firstKeys = new ArrayList<>();
+    protected final List<String> lastKeys = new ArrayList<>();
+
+    MDictParser(final MDFileInputStream mdInputStream) {
         this.mdInputStream = mdInputStream;
     }
+
+    protected static MDictParser createMDXParser(final MDFileInputStream inputStream) {
+        return new MDictParser(inputStream) {
+            @Override
+            protected boolean isV2Index() {
+                String requiredVersion = dictionaryInfo.getRequiredEngineVersion();
+                return !requiredVersion.startsWith("1");
+            }
+        };
+    }
+
+    protected static MDictParser createMDDParser(final MDFileInputStream inputStream) {
+        return new MDictParser(inputStream) {
+            @Override
+            protected boolean isV2Index() {
+                return true;
+            }
+        };
+    }
+
 
     Charset getDictCharset() {
         return Charset.forName(dictionaryInfo.getEncoding());
     }
 
-    protected boolean isV2Index() {
-        return !dictionaryInfo.getRequiredEngineVersion().startsWith("1");
-    }
+    protected abstract boolean isV2Index();
 
     protected boolean isHeaderEncrypted() {
         if (!isV2Index()) {
@@ -86,7 +105,7 @@ class MDictMDXParser {
      * @return DictionaryInfo object.
      * @throws MDException when read or parse error.
      */
-    MDictDictionaryInfo parseHeader() throws MDException {
+    protected MDictDictionaryInfo parseHeader() throws MDException {
         byte[] word = new byte[4];
         try {
             // Header
@@ -225,7 +244,8 @@ class MDictMDXParser {
      * +--------------------------------------------------+
      *
      */
-    private DictionaryData<Object> parseKeyBlock() throws MDException, IOException, DataFormatException {
+    private DictionaryData<Object> parseKeyBlock()
+            throws MDException, IOException, DataFormatException {
         Charset encoding = getDictCharset();
         numEntries = new int[(int) keyNumBlocks];
         long[] keyCompSize = new long[(int) keyNumBlocks];

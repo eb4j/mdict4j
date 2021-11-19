@@ -35,7 +35,7 @@ class MDictMDXParserTest {
     void parseTestHeader() throws FileNotFoundException, URISyntaxException, MDException {
         MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
-        MDictMDXParser parser = new MDictMDXParser(inputStream);
+        MDictParser parser = MDictParser.createMDXParser(inputStream);
         MDictDictionaryInfo dictionaryInfo = parser.parseHeader();
         assertEquals("Html", dictionaryInfo.getFormat());
         assertEquals("2.0", dictionaryInfo.getRequiredEngineVersion());
@@ -47,12 +47,12 @@ class MDictMDXParserTest {
     void parseTestIndex() throws MDException, URISyntaxException, IOException, DataFormatException {
         MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
-        MDictMDXParser parser = new MDictMDXParser(inputStream);
+        MDictParser parser = MDictParser.createMDXParser(inputStream);
         parser.parseHeader();
         DictionaryData<Object> index = parser.parseIndex(null);
         assertEquals(100, index.size());
         RecordIndex recordIndex = parser.parseRecordBlock();
         assertEquals(81, recordIndex.getRecordNumEntries());
-
     }
+
 }

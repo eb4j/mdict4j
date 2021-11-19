@@ -120,6 +120,22 @@ public class MDictDictionary {
         return dictionaryData.lookUpPredictive(word);
     }
 
+    public MDInputStream getDataStream(final Long offset) throws MDException {
+        int index = recordIndex.searchOffsetIndex(offset);
+        try {
+            mdInputStream.seek(recordIndex.getCompOffset(index));
+        } catch (IOException e) {
+            throw new MDException("IO error.", e);
+        }
+        long compSize = recordIndex.getRecordCompSize(index);
+        long decompSize = recordIndex.getRecordDecompSize(index);
+        try {
+            return MDictUtils.decompress(mdInputStream, compSize, decompSize, false);
+        } catch (DataFormatException | IOException e) {
+            throw new MDException("Decompressed data seems incorrect.");
+        }
+    }
+
     public String getText(final Long offset) throws MDException {
         String result;
         // calculate block index and seek it
@@ -147,60 +163,86 @@ public class MDictDictionary {
         }
     }
 
+    private static String getBaseName(final String path) {
+        String f = path;
+        if (f.endsWith(".mdx")) {
+            f = f.substring(0, f.length() - ".mdx".length());
+        }
+        return f;
+    }
+
     public static MDictDictionary loadDicitonary(final String mdxFile) throws MDException, IOException {
-        MDictDictionaryInfo info;
-        DictionaryData<Object> index;
-        RecordIndex record;
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
         }
-        String f = mdxFile;
-        if (f.endsWith(".mdx")) {
-            f = f.substring(0, f.length() - ".mdx".length());
-        }
-        String dictName = f;
-        File keyFile = new File(dictName + ".key");
-        byte[] keyword = null;
-        if (keyFile.canRead()) {
-            try {
-                keyword = loadDictionaryKey(keyFile);
-            } catch (IOException ignored) {
-                // ignore keyfile loading failed.
-            }
-        }
-        MDFileInputStream mdInputStream;
+        byte[] keyword = loadDictionaryKey(mdxFile);
+        MDFileInputStream mdxInputStream;
+        MDictDictionaryInfo info;
+        DictionaryData<Object> index;
+        RecordIndex record;
         try {
-            mdInputStream = new MDFileInputStream(mdxFile);
-            MDictMDXParser parser = new MDictMDXParser(mdInputStream);
+            mdxInputStream = new MDFileInputStream(mdxFile);
+            MDictParser parser = MDictParser.createMDXParser(mdxInputStream);
             info = parser.parseHeader();
             index = parser.parseIndex(keyword);
             record = parser.parseRecordBlock();
         } catch (IOException | DataFormatException e) {
             throw new MDException("Dictionary data read error", e);
         }
+        return new MDictDictionary(info, index, record, mdxInputStream);
+    }
+
+    public static MDictDictionary loadDicitonaryData(final String mdxFile) throws MDException, IOException {
+        File file = new File(mdxFile);
+        if (!file.isFile()) {
+            throw new MDException("Target file is not MDict file.");
+        }
+        String dictName = getBaseName(mdxFile);
+        byte[] keyword = loadDictionaryKey(mdxFile);
         File mddFile = new File(dictName + ".mdd");
-        return new MDictDictionary(info, index, record, mdInputStream);
+        MDFileInputStream mddInputStream;
+        MDictDictionaryInfo info;
+        DictionaryData<Object> index;
+        RecordIndex record;
+        try {
+            mddInputStream = new MDFileInputStream(mddFile.getAbsolutePath());
+            MDictParser parser = MDictParser.createMDDParser(mddInputStream);
+            info = parser.parseHeader();
+            index = parser.parseIndex(keyword);
+            record = parser.parseRecordBlock();
+        } catch (DataFormatException e) {
+            throw new MDException("Dictionary data read error", e);
+        }
+        return new MDictDictionary(info, index, record, mddInputStream);
     }
 
     /**
-     * parse dictionary.key file and return 128-bit regcode.
-     * @param keyFile dictionary.key file.
-     * @return byte[] password data
-     * @throws IOException when file read failed.
-     */
-    private static byte[] loadDictionaryKey(final File keyFile) throws IOException {
-        byte[] keydata = new byte[16];
-        if (keyFile.isFile() && keyFile.canRead()) {
-            try (Stream<String> lines = Files.lines(keyFile.toPath())) {
-                String first = lines.findFirst().orElse(null);
-                if (first != null) {
-                    first = first.substring(0, 32);
-                    byte[] temp = Hex.decode(first);
-                    System.arraycopy(temp, 0, keydata, 0, 16);
+         * parse dictionary.key file and return 128-bit regcode.
+         * @param mdxFile dictionary file path.
+         * @return byte[] password data
+         * @throws IOException when file read failed.
+         */
+    private static byte[] loadDictionaryKey(final String mdxFile) throws IOException {
+        String dictName = getBaseName(mdxFile);
+        File keyFile = new File(dictName + ".key");
+        if (keyFile.canRead()) {
+            try {
+                byte[] keydata = new byte[16];
+                if (keyFile.isFile() && keyFile.canRead()) {
+                    try (Stream<String> lines = Files.lines(keyFile.toPath())) {
+                        String first = lines.findFirst().orElse(null);
+                        if (first != null) {
+                            first = first.substring(0, 32);
+                            byte[] temp = Hex.decode(first);
+                            System.arraycopy(temp, 0, keydata, 0, 16);
+                        }
+                    }
                 }
+                return keydata;
+            } catch (IOException ignored) {
             }
         }
-        return keydata;
+        return null;
     }
 }
