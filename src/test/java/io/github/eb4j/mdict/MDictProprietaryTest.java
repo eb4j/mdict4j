@@ -18,12 +18,8 @@
 
 package io.github.eb4j.mdict;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,26 +32,34 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MDictProprietaryTest {
 
-    @ParameterizedTest
-    @CsvSource({"/proprietaryData/proprietary.mdx,zoom"})
-    @Ignore("Test with proprietary dictionary data; requires dictionary prepared by tester")
-    void loadProprietaryDictionary(String source, String query) throws URISyntaxException, MDException, IOException {
-        MDictDictionary dictionary = MDictDictionary.loadDicitonary(
-                Objects.requireNonNull(this.getClass().getResource(source)).toURI().getPath());
+    private static final String TARGET = "/proprietaryData/proprietary.mdx";
+
+    @Test
+    @EnabledIf("targetFileExist")
+    // Test with proprietary dictionary data; requires dictionary prepared by tester
+    void loadProprietaryDictionary() throws URISyntaxException, MDException, IOException {
+        MDictDictionary dictionary = MDictDictionary.loadDicitonary(Objects.requireNonNull(
+                this.getClass().getResource(TARGET)).toURI().getPath());
         assertNotNull(dictionary);
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
         assertEquals(false, dictionary.isHeaderEncrypted());
         assertEquals(true, dictionary.isIndexEncrypted());
         assertEquals("2.0", dictionary.getMdxVersion());
         assertEquals("Html", dictionary.getFormat());
-        for (Map.Entry<String, Object> entry: dictionary.getEntries(query)) {
-            String word = entry.getKey();
-            assertNotNull(word);
-            Object value = entry.getValue();
-            assertEquals(true, value instanceof Long);
-            String text = dictionary.getText((Long) value);
-            assertNotNull(text);
+        String[] queries = new String[] {"test", "script", "zoom"};
+        for (String query: queries) {
+            for (Map.Entry<String, Object> entry : dictionary.getEntries(query)) {
+                String word = entry.getKey();
+                assertNotNull(word);
+                Object value = entry.getValue();
+                assertEquals(true, value instanceof Long);
+                String text = dictionary.getText((Long) value);
+                assertNotNull(text);
+            }
         }
     }
 
+    boolean targetFileExist() {
+        return this.getClass().getResource(TARGET) != null;
+    }
 }

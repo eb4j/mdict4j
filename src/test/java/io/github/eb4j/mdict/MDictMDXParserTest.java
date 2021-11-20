@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class MDictMDXParserTest {
 
     @Test
-    void parseTestHeader() throws FileNotFoundException, URISyntaxException, MDException {
+    void parseV2Header() throws FileNotFoundException, URISyntaxException, MDException {
         MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
         MDictParser parser = MDictParser.createMDXParser(inputStream);
@@ -44,7 +44,7 @@ class MDictMDXParserTest {
     }
 
     @Test
-    void parseTestIndex() throws MDException, URISyntaxException, IOException, DataFormatException {
+    void parseV2Index() throws MDException, URISyntaxException, IOException, DataFormatException {
         MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
                 this.getClass().getResource("/test.mdx")).toURI().getPath());
         MDictParser parser = MDictParser.createMDXParser(inputStream);
@@ -53,6 +53,30 @@ class MDictMDXParserTest {
         assertEquals(100, index.size());
         RecordIndex recordIndex = parser.parseRecordBlock();
         assertEquals(81, recordIndex.getRecordNumEntries());
+    }
+
+    @Test
+    void parseV1Header() throws FileNotFoundException, URISyntaxException, MDException {
+        MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
+                this.getClass().getResource("/wordnet.mdx")).toURI().getPath());
+        MDictParser parser = MDictParser.createMDXParser(inputStream);
+        MDictDictionaryInfo dictionaryInfo = parser.parseHeader();
+        assertEquals("Html", dictionaryInfo.getFormat());
+        assertEquals("1.2", dictionaryInfo.getRequiredEngineVersion());
+        assertEquals(1258, dictionaryInfo.getKeyBlockPosition());
+        assertEquals("No", dictionaryInfo.getEncrypted());
+    }
+
+    @Test
+    void parseV1Index() throws MDException, URISyntaxException, IOException, DataFormatException {
+        MDFileInputStream inputStream = new MDFileInputStream(Objects.requireNonNull(
+                this.getClass().getResource("/wordnet.mdx")).toURI().getPath());
+        MDictParser parser = MDictParser.createMDXParser(inputStream);
+        parser.parseHeader();
+        DictionaryData<Object> index = parser.parseIndex(null);
+        assertEquals(144301, index.size());
+        RecordIndex recordIndex = parser.parseRecordBlock();
+        assertEquals(144301, recordIndex.getRecordNumEntries());
     }
 
 }
