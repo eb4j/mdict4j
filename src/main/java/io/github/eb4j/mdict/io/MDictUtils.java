@@ -72,6 +72,12 @@ public final class MDictUtils {
         return byteArrayToLong(dWord);
     }
 
+    public static int readInt(final MDInputStream mdInputStream) throws IOException {
+        byte[] word = new byte[4];
+        mdInputStream.readFully(word);
+        return byteArrayToInt(word);
+    }
+
     public static int readByte(final MDFileInputStream mdInputStream) throws IOException {
         byte[] b = new byte[1];
         mdInputStream.readFully(b);
@@ -127,13 +133,13 @@ public final class MDictUtils {
         inputStream.readFully(checksum);
         byte[] input;
         byte[] output;
+        Adler32 adler32 = new Adler32();
         switch (flag) {
             case 0:
                 input = new byte[(int) compSize - 8];
                 inputStream.readFully(input);
-                Adler32 adler32 = new Adler32();
                 adler32.update(input);
-                if (adler32.getValue() != MDictUtils.byteArrayToInt(checksum)) {
+                if (adler32.getValue() != MDictUtils.byteArrayToUInt(checksum)) {
                     throw new MDException("Checksum error.");
                 }
                 return new MDBlockInputStream(new ByteArrayInputStream(input));
@@ -157,9 +163,8 @@ public final class MDictUtils {
                 if (outLen.value != decompSize) {
                     throw new MDException("Decompression error, wrong size.");
                 }
-                adler32 = new Adler32();
                 adler32.update(output);
-                if (adler32.getValue() != MDictUtils.byteArrayToInt(checksum)) {
+                if (adler32.getValue() != MDictUtils.byteArrayToUInt(checksum)) {
                     throw new MDException("Decompression checksum error.");
                 }
                 return new MDBlockInputStream(new ByteArrayInputStream(output));
@@ -186,6 +191,10 @@ public final class MDictUtils {
                 inflater.end();
                 if (size != decompSize) {
                     throw new MDException("Decompression error, wrong size.");
+                }
+                adler32.update(output);
+                if (adler32.getValue() != MDictUtils.byteArrayToUInt(checksum)) {
+                    throw new MDException("Decompression checksum error.");
                 }
                 return new MDBlockInputStream(new ByteArrayInputStream(output));
             default:
@@ -237,6 +246,10 @@ public final class MDictUtils {
 
     public static int byteArrayToInt(final byte[] word) {
         return byteArrayToInt(word, ByteOrder.BIG_ENDIAN);
+    }
+
+    public static long byteArrayToUInt(final byte[] word) {
+        return byteArrayToInt(word, ByteOrder.BIG_ENDIAN) & 0xFFFFFFFFL;
     }
 
     public static short byteArrayToShort(final byte[] hWord) {

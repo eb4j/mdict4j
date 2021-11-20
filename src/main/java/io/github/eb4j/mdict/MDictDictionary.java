@@ -39,14 +39,15 @@ public class MDictDictionary {
     private final DictionaryData<Object> dictionaryData;
     private final RecordIndex recordIndex;
 
+    private final String mdxVersion;
     private final String title;
     private final Charset encoding;
     private final String creationDate;
     private final String format;
     private final String description;
     private final String styleSheet;
-    private final int encrypted;
-    private final boolean keyCaseSensitive;
+    private final String encrypted;
+    private final String keyCaseSensitive;
 
     public MDictDictionary(final MDictDictionaryInfo info, final DictionaryData<Object> index,
                            final RecordIndex recordIndex, final MDFileInputStream mdInputStream) {
@@ -54,14 +55,19 @@ public class MDictDictionary {
         this.recordIndex = recordIndex;
         this.mdInputStream = mdInputStream;
         //
+        mdxVersion = info.getRequiredEngineVersion();
         title = info.getTitle();
         encoding = Charset.forName(info.getEncoding());
         creationDate = info.getCreationDate();
         format = info.getFormat();
         description = info.getDescription();
         styleSheet = info.getStyleSheet();
-        encrypted = Integer.parseInt(info.getEncrypted());
-        keyCaseSensitive = "true".equalsIgnoreCase(info.getKeyCaseSensitive());
+        encrypted = info.getEncrypted();
+        keyCaseSensitive = info.getKeyCaseSensitive();
+    }
+
+    public String getMdxVersion() {
+        return mdxVersion;
     }
 
     public Charset getEncoding() {
@@ -85,15 +91,21 @@ public class MDictDictionary {
     }
 
     public boolean isHeaderEncrypted() {
-        return (encrypted & 0x01) > 0;
+        return (Integer.parseInt(encrypted) & 0x01) > 0;
     }
 
     public boolean isIndexEncrypted() {
-        return (encrypted & 0x02) > 0;
+        if ("Yes".equals(encrypted)) {
+            return true;
+        }
+        if ("No".equals(encrypted)) {
+            return false;
+        }
+        return (Integer.parseInt(encrypted) & 0x02) > 0;
     }
 
     public boolean isKeyCaseSensitive() {
-        return keyCaseSensitive;
+        return "Yes".equals(keyCaseSensitive) || "true".equals(keyCaseSensitive);
     }
 
     public String getStyleSheet() {
@@ -148,7 +160,7 @@ public class MDictDictionary {
             f = f.substring(0, f.length() - ".mdx".length());
         }
         String dictName = f;
-        File keyFile = new File( dictName + ".key");
+        File keyFile = new File(dictName + ".key");
         byte[] keyword = null;
         if (keyFile.canRead()) {
             try {
