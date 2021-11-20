@@ -26,7 +26,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains:annotations:23.0.0")
     // Use older jackson for compatibility with other user projects
-    implementation("com.fasterxml.jackson.core:jackson-core:2.10.5")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.13.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.10.5.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.5")
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
