@@ -26,15 +26,15 @@ repositories {
 dependencies {
     implementation("org.jetbrains:annotations:23.0.0")
     // Use older jackson for compatibility with other user projects
-    implementation("com.fasterxml.jackson.core:jackson-core:2.7.4")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.7.4")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.7.4")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.10.5")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.10.5.1")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.5")
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
     implementation("org.anarres.lzo:lzo-core:1.0.6")
     implementation("com.github.takawitter:trie4j:0.9.8")
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 tasks.getByName<Test>("test") {
@@ -163,7 +163,7 @@ if (dotgit.exists()) {
 }
 
 tasks.register("writeVersionFile") {
-    val folder = project.file("src/main/resources");
+    val folder = project.file("src/main/resources")
     if (!folder.exists()) {
         folder.mkdirs()
     }
