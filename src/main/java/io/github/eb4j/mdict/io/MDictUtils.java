@@ -104,7 +104,7 @@ public final class MDictUtils {
             byte[] buf = new byte[2];
             try {
                 mdInputStream.readFully(buf);
-                while (buf[0] != 0 && buf[1] != 0) {
+                while (buf[0] != 0 || buf[1] != 0) {
                     baos.write(buf);
                     mdInputStream.readFully(buf);
                 }

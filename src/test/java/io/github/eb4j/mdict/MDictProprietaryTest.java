@@ -57,6 +57,8 @@ class MDictProprietaryTest {
                 assertNotNull(text);
             }
         }
+        MDictDictionary dictData = MDictDictionary.loadDicitonaryData(Objects.requireNonNull(
+                this.getClass().getResource(TARGET)).toURI().getPath());
     }
 
     boolean targetFileExist() {

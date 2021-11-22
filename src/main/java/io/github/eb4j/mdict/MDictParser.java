@@ -214,10 +214,12 @@ abstract class MDictParser {
 
     private String readFirstLastkey(final MDInputStream input, final int size, final Charset encoding)
             throws IOException {
-        String key = MDictUtils.readString(input, size, encoding);
+        String key;
         if (StandardCharsets.UTF_16LE.equals(encoding) || StandardCharsets.UTF_16.equals(encoding)) {
+            key = MDictUtils.readString(input, size * 2, encoding);
             input.skip(2);
         } else {
+            key = MDictUtils.readString(input, size, encoding);
             input.skip(1);
         }
         return key;
