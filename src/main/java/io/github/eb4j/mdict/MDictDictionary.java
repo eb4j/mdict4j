@@ -209,6 +209,8 @@ public class MDictDictionary {
             mddInputStream = new MDFileInputStream(mddFile.getAbsolutePath());
             MDictParser parser = MDictParser.createMDDParser(mddInputStream);
             info = parser.parseHeader();
+            // force encoding to UTF-16
+            info.setEncoding("UTF-16LE");
             index = parser.parseIndex(keyword);
             record = parser.parseRecordBlock();
         } catch (DataFormatException e) {
