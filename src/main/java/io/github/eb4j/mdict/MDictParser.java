@@ -75,7 +75,24 @@ abstract class MDictParser {
 
 
     Charset getDictCharset() {
-        return Charset.forName(dictionaryInfo.getEncoding());
+        String encoding = dictionaryInfo.getEncoding();
+        if (encoding == null || encoding.equals("")) {
+            return StandardCharsets.UTF_8;
+        }
+        if (encoding.equalsIgnoreCase("UTF-8")) {
+            return StandardCharsets.UTF_8;
+        }
+        if (encoding.equalsIgnoreCase("UTF-16") || encoding.equalsIgnoreCase("UTF-16LE")) {
+            return StandardCharsets.UTF_16LE;
+        }
+        if (encoding.equalsIgnoreCase("ISO-8859-1")) {
+            return StandardCharsets.ISO_8859_1;
+        }
+        if (encoding.equalsIgnoreCase("GBK") || encoding.equalsIgnoreCase("GB2312")) {
+            return Charset.forName("GB18030");
+        }
+        // fall back to UTF-8
+        return StandardCharsets.UTF_8;
     }
 
     protected abstract boolean isV2Index();
