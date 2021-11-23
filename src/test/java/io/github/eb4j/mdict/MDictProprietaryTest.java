@@ -18,6 +18,7 @@
 
 package io.github.eb4j.mdict;
 
+import io.github.eb4j.mdict.io.MDInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
@@ -59,6 +60,14 @@ class MDictProprietaryTest {
         }
         MDictDictionary dictData = MDictDictionary.loadDicitonaryData(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
+        for (Map.Entry<String, Object> entry : dictData.getEntries("/audio/test.mp3")) {
+            String word = entry.getKey();
+            assertNotNull(word);
+            Object value = entry.getValue();
+            assertEquals(true, value instanceof Long);
+            byte[] buf = dictionary.getData((Long) value);
+            assertEquals(0x01, buf[0]);
+        }
     }
 
     boolean targetFileExist() {

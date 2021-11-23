@@ -120,7 +120,7 @@ public class MDictDictionary {
         return dictionaryData.lookUpPredictive(word);
     }
 
-    public MDInputStream getDataStream(final Long offset) throws MDException {
+    public byte[] getData(final Long offset) throws MDException {
         int index = recordIndex.searchOffsetIndex(offset);
         try {
             mdInputStream.seek(recordIndex.getCompOffset(index));
@@ -130,7 +130,7 @@ public class MDictDictionary {
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
         try {
-            return MDictUtils.decompress(mdInputStream, compSize, decompSize, false);
+            return MDictUtils.decompressBuf(mdInputStream, compSize, decompSize, false);
         } catch (DataFormatException | IOException e) {
             throw new MDException("Decompressed data seems incorrect.");
         }

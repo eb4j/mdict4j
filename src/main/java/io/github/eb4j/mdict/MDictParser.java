@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.Adler32;
 import java.util.zip.DataFormatException;
 
@@ -49,6 +50,9 @@ abstract class MDictParser {
 
     protected final List<String> firstKeys = new ArrayList<>();
     protected final List<String> lastKeys = new ArrayList<>();
+
+    private static final Pattern MDDReplacePattern = Pattern.compile(Pattern.quote("\\"));
+
 
     MDictParser(final MDFileInputStream mdInputStream) {
         this.mdInputStream = mdInputStream;
@@ -70,9 +74,12 @@ abstract class MDictParser {
             protected boolean isV2Index() {
                 return true;
             }
+            @Override
+            protected String unescapeKey(final String keytext) {
+                return MDDReplacePattern.matcher(keytext).replaceAll("/");
+            }
         };
     }
-
 
     Charset getDictCharset() {
         String encoding = dictionaryInfo.getEncoding();
@@ -168,6 +175,10 @@ abstract class MDictParser {
             parseV2Index();
         }
         return parseKeyBlock();
+    }
+
+    protected String unescapeKey(final String keytext) {
+        return keytext;
     }
 
     protected void parseV1Index() throws IOException {
@@ -276,9 +287,9 @@ abstract class MDictParser {
             for (int i = 0; i < keyNumBlocks; i++) {
                 numEntries[i] = (int) MDictUtils.readLong(indexDs);
                 short firstSize = MDictUtils.readShort(indexDs);
-                firstKeys.add(readFirstLastkey(indexDs, firstSize, encoding));
+                firstKeys.add(unescapeKey(readFirstLastkey(indexDs, firstSize, encoding)));
                 short lastSize = MDictUtils.readShort(indexDs);
-                lastKeys.add(readFirstLastkey(indexDs, lastSize, encoding));
+                lastKeys.add(unescapeKey(readFirstLastkey(indexDs, lastSize, encoding)));
                 keyCompSize[i] = MDictUtils.readLong(indexDs);
                 keyDecompSize[i] = MDictUtils.readLong(indexDs);
                 sum += keyCompSize[i];
@@ -309,7 +320,7 @@ abstract class MDictParser {
                 } else {
                     offset = MDictUtils.readInt(blockIns);
                 }
-                String keytext = MDictUtils.readCString(blockIns, encoding);
+                String keytext = unescapeKey(MDictUtils.readCString(blockIns, encoding));
                 newDataBuilder.add(keytext, offset);
                 totalKeys++;
             }

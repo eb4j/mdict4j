@@ -124,8 +124,8 @@ public final class MDictUtils {
         return new String(baos.toByteArray(), encoding);
     }
 
-    public static MDInputStream decompress(final MDFileInputStream inputStream, final long compSize,
-                                                final long decompSize, final boolean encrypted)
+    public static byte[] decompressBuf(final MDFileInputStream inputStream, final long compSize,
+                                       final long decompSize, final boolean encrypted)
             throws IOException, MDException, DataFormatException {
         int flag = inputStream.read();
         inputStream.skip(3);
@@ -142,7 +142,7 @@ public final class MDictUtils {
                 if (adler32.getValue() != MDictUtils.byteArrayToUInt(checksum)) {
                     throw new MDException("Checksum error.");
                 }
-                return new MDBlockInputStream(new ByteArrayInputStream(input));
+                return input;
             case 1:
                 input = new byte[(int) compSize - 8];
                 output = new byte[(int) decompSize];
@@ -167,7 +167,7 @@ public final class MDictUtils {
                 if (adler32.getValue() != MDictUtils.byteArrayToUInt(checksum)) {
                     throw new MDException("Decompression checksum error.");
                 }
-                return new MDBlockInputStream(new ByteArrayInputStream(output));
+                return output;
             case 2:
                 input = new byte[(int) compSize - 8];
                 output = new byte[(int) decompSize];
@@ -196,10 +196,17 @@ public final class MDictUtils {
                 if (adler32.getValue() != MDictUtils.byteArrayToUInt(checksum)) {
                     throw new MDException("Decompression checksum error.");
                 }
-                return new MDBlockInputStream(new ByteArrayInputStream(output));
+                return output;
             default:
                 throw new MDException(String.format("Unknown compression level: %d", flag));
         }
+    }
+
+    public static MDInputStream decompress(final MDFileInputStream inputStream, final long compSize,
+                                           final long decompSize, final boolean encrypted)
+            throws IOException, MDException, DataFormatException {
+        return new MDBlockInputStream(new ByteArrayInputStream(decompressBuf(inputStream, compSize,
+                decompSize, encrypted)));
     }
 
     public static byte[] decryptKeyIndex(final byte[] buffer, final byte[] salt)
