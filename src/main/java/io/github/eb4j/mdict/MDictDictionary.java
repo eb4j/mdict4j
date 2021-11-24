@@ -107,6 +107,10 @@ public class MDictDictionary {
         return (Integer.parseInt(encrypted) & 0x02) > 0;
     }
 
+    public boolean isMdx() {
+        return mdx;
+    }
+
     public boolean isKeyCaseSensitive() {
         return "Yes".equals(keyCaseSensitive) || "true".equals(keyCaseSensitive);
     }

@@ -29,7 +29,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MDictProprietaryTest {
 
@@ -41,7 +43,7 @@ class MDictProprietaryTest {
     void loadProprietaryDictionary() throws URISyntaxException, MDException, IOException {
         MDictDictionary dictionary = MDictDictionary.loadDicitonary(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
-        assertNotNull(dictionary);
+        assertTrue(dictionary.isMdx());
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
         assertEquals(false, dictionary.isHeaderEncrypted());
         assertEquals(true, dictionary.isIndexEncrypted());
@@ -53,18 +55,19 @@ class MDictProprietaryTest {
                 String word = entry.getKey();
                 assertNotNull(word);
                 Object value = entry.getValue();
-                assertEquals(true, value instanceof Long);
+                assertTrue(value instanceof Long);
                 String text = dictionary.getText((Long) value);
                 assertNotNull(text);
             }
         }
         MDictDictionary dictData = MDictDictionary.loadDictionaryData(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
+        assertFalse(dictData.isMdx());
         for (Map.Entry<String, Object> entry : dictData.getEntries("/audio/test.mp3")) {
             String word = entry.getKey();
             assertNotNull(word);
             Object value = entry.getValue();
-            assertEquals(true, value instanceof Long);
+            assertTrue(value instanceof Long);
             byte[] buf = dictData.getData((Long) value);
             Tika tika = new Tika();
             String mediaType = tika.detect(buf);
