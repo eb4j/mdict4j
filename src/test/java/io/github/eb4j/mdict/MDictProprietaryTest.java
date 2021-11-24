@@ -58,7 +58,7 @@ class MDictProprietaryTest {
                 assertNotNull(text);
             }
         }
-        MDictDictionary dictData = MDictDictionary.loadDicitonaryData(Objects.requireNonNull(
+        MDictDictionary dictData = MDictDictionary.loadDictionaryData(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
         for (Map.Entry<String, Object> entry : dictData.getEntries("/audio/test.mp3")) {
             String word = entry.getKey();

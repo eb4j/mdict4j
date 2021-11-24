@@ -48,9 +48,11 @@ public class MDictDictionary {
     private final String styleSheet;
     private final String encrypted;
     private final String keyCaseSensitive;
+    private final boolean mdx;
 
     public MDictDictionary(final MDictDictionaryInfo info, final DictionaryData<Object> index,
-                           final RecordIndex recordIndex, final MDFileInputStream mdInputStream) {
+                           final RecordIndex recordIndex, final MDFileInputStream mdInputStream,
+                           final boolean mdx) {
         dictionaryData = index;
         this.recordIndex = recordIndex;
         this.mdInputStream = mdInputStream;
@@ -64,6 +66,7 @@ public class MDictDictionary {
         styleSheet = info.getStyleSheet();
         encrypted = info.getEncrypted();
         keyCaseSensitive = info.getKeyCaseSensitive();
+        this.mdx = mdx;
     }
 
     public String getMdxVersion() {
@@ -121,6 +124,9 @@ public class MDictDictionary {
     }
 
     public byte[] getData(final Long offset) throws MDException {
+        if (mdx) {
+            throw new MDException("Can not retrieve raw data from MDX file.");
+        }
         int index = recordIndex.searchOffsetIndex(offset);
         int pos = (int) (offset - recordIndex.getRecordOffsetDecomp(index));
         try {
@@ -147,6 +153,9 @@ public class MDictDictionary {
     }
 
     public String getText(final Long offset) throws MDException {
+        if (!mdx) {
+            throw new MDException("Can not retrieve text data from MDD file.");
+        }
         String result;
         // calculate block index and seek it
         int index = recordIndex.searchOffsetIndex(offset);
@@ -200,10 +209,10 @@ public class MDictDictionary {
         } catch (IOException | DataFormatException e) {
             throw new MDException("Dictionary data read error", e);
         }
-        return new MDictDictionary(info, index, record, mdxInputStream);
+        return new MDictDictionary(info, index, record, mdxInputStream, true);
     }
 
-    public static MDictDictionary loadDicitonaryData(final String mdxFile) throws MDException, IOException {
+    public static MDictDictionary loadDictionaryData(final String mdxFile) throws MDException, IOException {
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
@@ -226,7 +235,7 @@ public class MDictDictionary {
         } catch (DataFormatException e) {
             throw new MDException("Dictionary data read error", e);
         }
-        return new MDictDictionary(info, index, record, mddInputStream);
+        return new MDictDictionary(info, index, record, mddInputStream, false);
     }
 
     /**
