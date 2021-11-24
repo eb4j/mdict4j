@@ -59,7 +59,11 @@ public class MDictDictionary {
         //
         mdxVersion = info.getRequiredEngineVersion();
         title = info.getTitle();
-        encoding = Charset.forName(info.getEncoding());
+        String encodingName = info.getEncoding();
+        if (encodingName.equalsIgnoreCase("UTF-16")) {
+            encodingName = "UTF-16LE";
+        }
+        encoding = Charset.forName(encodingName);
         creationDate = info.getCreationDate();
         format = info.getFormat();
         description = info.getDescription();
