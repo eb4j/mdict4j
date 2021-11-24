@@ -59,9 +59,13 @@ public final class RecordIndex {
         return recordNumEntries;
     }
 
-    public int searchOffsetIndex(final long off) {
+    public int searchOffsetIndex(final long off) throws MDException {
         int start = 0;
-        int end = recordOffsetDecomp.length - 1;
+        int end = recordOffsetDecomp.length - 2;
+        // check range of offset
+        if (0 > off || off > recordOffsetDecomp[end + 1]) {
+            throw new MDException("Wrong search index!!");
+        }
         do {
             int middle = (start + end) / 2;
             if (middle == recordOffsetDecomp.length - 1) {
