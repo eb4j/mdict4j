@@ -19,9 +19,12 @@
 package io.github.eb4j.mdict;
 
 import io.github.eb4j.mdict.io.MDInputStream;
+import org.apache.tika.Tika;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -65,8 +68,10 @@ class MDictProprietaryTest {
             assertNotNull(word);
             Object value = entry.getValue();
             assertEquals(true, value instanceof Long);
-            byte[] buf = dictionary.getData((Long) value);
-            assertEquals(0x01, buf[0]);
+            byte[] buf = dictData.getData((Long) value);
+            Tika tika = new Tika();
+            String mediaType = tika.detect(buf);
+            assertEquals("audio/mpeg", mediaType);
         }
     }
 

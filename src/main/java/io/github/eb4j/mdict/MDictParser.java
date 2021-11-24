@@ -353,6 +353,7 @@ abstract class MDictParser {
         long[] recordOffsetDecomp = new long[(int) recordNumBlocks];
         long offsetDecomp = 0;
         long offsetComp = mdInputStream.tell() + recordIndexLen;
+        long endPos = offsetComp;
         long endOffsetComp = offsetComp + recordBlockLen;
         for (int i = 0; i < recordNumBlocks; i++) {
             if (isV2Index()) {
@@ -366,6 +367,9 @@ abstract class MDictParser {
             offsetComp += recordCompSize[i];
             recordOffsetDecomp[i] = offsetDecomp;
             offsetDecomp += recordDecompSize[i];
+        }
+        if (endPos != mdInputStream.tell()) {
+            throw new MDException("Wrong index size");
         }
         if (offsetComp != endOffsetComp) {
             throw new MDException("Wrong index position.");

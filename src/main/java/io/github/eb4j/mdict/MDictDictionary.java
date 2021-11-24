@@ -122,6 +122,7 @@ public class MDictDictionary {
 
     public byte[] getData(final Long offset) throws MDException {
         int index = recordIndex.searchOffsetIndex(offset);
+        int pos = (int) (offset - recordIndex.getRecordOffsetDecomp(index));
         try {
             mdInputStream.seek(recordIndex.getCompOffset(index));
         } catch (IOException e) {
@@ -129,8 +130,17 @@ public class MDictDictionary {
         }
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
+        int dataSize;
+        if (recordIndex.getRecordNumEntries() -1 > index) {
+            dataSize = (int) (recordIndex.getRecordOffsetDecomp(index + 1) - offset);
+        } else {
+            dataSize = (int) (decompSize - pos);
+        }
         try {
-            return MDictUtils.decompressBuf(mdInputStream, compSize, decompSize, false);
+            byte[] result = new byte[dataSize];
+            byte[] buf = MDictUtils.decompressBuf(mdInputStream, compSize, decompSize, false);
+            System.arraycopy(buf, pos, result, 0, dataSize);
+            return result;
         } catch (DataFormatException | IOException e) {
             throw new MDException("Decompressed data seems incorrect.");
         }
