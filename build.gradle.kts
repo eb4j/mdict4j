@@ -33,7 +33,7 @@ dependencies {
     implementation("org.anarres.lzo:lzo-core:1.0.6")
     implementation("com.github.takawitter:trie4j:0.9.8")
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
     testImplementation("org.jsoup:jsoup:1.14.3")
     testImplementation("org.apache.tika:tika-core:2.1.0")
