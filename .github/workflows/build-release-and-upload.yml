@@ -21,10 +21,9 @@ jobs:
       run: |
         REV_COUNT=`git rev-list --count HEAD`
         echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
-    - uses: burrunan/gradle-cache-action@v1
-      with:
-        gradle-version: 6.8.3
-        arguments: build
+    - uses: gradle/gradle-build-action@v2
+      name: Setup gradle
+    - run: ./gradlew build
       env:
         ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_SECRET_KEY }}
         ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_KEY_PASSPHARASE }}
@@ -39,10 +38,7 @@ jobs:
         draft: false
         prerelease: false
     - name: Publish package to OSSRH
-      uses: burrunan/gradle-cache-action@v1
-      with:
-        gradle-version: 6.8.3
-        arguments: publishToSonatype
+      run: ./gradlew publishToSonatype
       env:
         ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_SECRET_KEY }}
         ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_KEY_PASSPHARASE }}
