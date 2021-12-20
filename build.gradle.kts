@@ -29,7 +29,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-core:2.13.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.1")
-    implementation("org.bouncycastle:bcprov-jdk15on:1.69")
+    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
     implementation("org.anarres.lzo:lzo-core:1.0.6")
     implementation("com.github.takawitter:trie4j:0.9.8")
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9")
