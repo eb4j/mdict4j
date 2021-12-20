@@ -10,8 +10,8 @@ plugins {
     `java-library-distribution`
     `maven-publish`
     kotlin("jvm") version "1.6.0"
-    id("com.github.spotbugs") version "4.7.10"
-    id("com.diffplug.spotless") version "6.0.0"
+    id("com.github.spotbugs") version "5.0.3"
+    id("com.diffplug.spotless") version "6.0.5"
     id("com.github.kt3k.coveralls") version "2.12.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("com.palantir.git-version") version "0.12.3" apply false
@@ -26,18 +26,18 @@ repositories {
 dependencies {
     implementation("org.jetbrains:annotations:23.0.0")
     // Use older jackson for compatibility with other user projects
-    implementation("com.fasterxml.jackson.core:jackson-core:2.10.5")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.10.5.1")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.10.5")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.13.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0")
     implementation("org.bouncycastle:bcprov-jdk15on:1.69")
     implementation("org.anarres.lzo:lzo-core:1.0.6")
     implementation("com.github.takawitter:trie4j:0.9.8")
     testImplementation("org.codehaus.groovy:groovy-all:3.0.9")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.jsoup:jsoup:1.14.3")
     testImplementation("org.apache.tika:tika-core:2.1.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 tasks.getByName<Test>("test") {
