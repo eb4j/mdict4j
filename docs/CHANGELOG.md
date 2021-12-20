@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.2]
+* Bump versions
+  * Jackson@2.13.1
+  * JUnit@5.8.2
+  * Gradle kotlin@1.6.10
+  * actions setup-java@2.4.0
+  * BouncyCastle@1.70
+  * Gradle@7.3.2
+
 ## [0.2.1]
 * Support dictionary that use UTF-16(LE) as encoding. 
     * Force endian to LE when UTF-16 is specified even lacking BOM.
@@ -31,7 +40,8 @@ All notable changes to this project will be documented in this file.
 ## 0.1.0
 * First internal release
 
-[Unreleased]: https://github.com/eb4j/mdict4j/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/eb4j/mdict4j/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/eb4j/mdict4j/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/eb4j/mdict4j/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/eb4j/mdict4j/compare/v0.1.4...v0.2.0
 [0.1.4]: https://github.com/eb4j/mdict4j/compare/v0.1.3...v0.1.4
