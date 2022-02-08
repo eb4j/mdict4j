@@ -59,7 +59,7 @@ public final class DictionaryData<T> {
      * @return A list of stored objects matching the given word
      */
     public List<Entry<String, T>> lookUp(final String word) throws IllegalStateException {
-        return doLookUpWithLowerCase(word, false);
+        return doLookUp(word, false);
     }
 
     /**
@@ -71,16 +71,7 @@ public final class DictionaryData<T> {
      * @return A list of stored objects matching the given word
      */
     public List<Entry<String, T>> lookUpPredictive(final String word) throws IllegalStateException {
-        return doLookUpWithLowerCase(word, true);
-    }
-
-    private List<Entry<String, T>> doLookUpWithLowerCase(final String word, final boolean predictive) {
-        List<Entry<String, T>> result = doLookUp(word, predictive);
-        if (result.isEmpty()) {
-            String lowerWord = word.toLowerCase();
-            result = doLookUp(lowerWord, predictive);
-        }
-        return result;
+        return doLookUp(word, true);
     }
 
     private List<Entry<String, T>> doLookUp(final String word, final boolean predictive) throws IllegalStateException {
