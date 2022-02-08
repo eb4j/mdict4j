@@ -37,7 +37,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.jsoup:jsoup:1.14.3")
-    testImplementation("org.apache.tika:tika-core:2.1.0")
+    testImplementation("org.apache.tika:tika-core:2.3.0")
 }
 
 tasks.getByName<Test>("test") {
