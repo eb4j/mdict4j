@@ -178,7 +178,7 @@ public class MDictDictionary {
         long compSize = recordIndex.getRecordCompSize(index);
         long decompSize = recordIndex.getRecordDecompSize(index);
         int dataSize;
-        if (recordIndex.getRecordNumEntries() -1 > index) {
+        if (recordIndex.getRecordNumEntries() - 1 > index) {
             dataSize = (int) (recordIndex.getRecordOffsetDecomp(index + 1) - offset);
         } else {
             dataSize = (int) (decompSize - pos);

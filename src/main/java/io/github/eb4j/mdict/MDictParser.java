@@ -51,7 +51,7 @@ abstract class MDictParser {
     protected final List<String> firstKeys = new ArrayList<>();
     protected final List<String> lastKeys = new ArrayList<>();
 
-    private static final Pattern MDDReplacePattern = Pattern.compile(Pattern.quote("\\"));
+    private static final Pattern MDD_REPLACE_PATTERN = Pattern.compile(Pattern.quote("\\"));
 
 
     MDictParser(final MDFileInputStream mdInputStream) {
@@ -76,7 +76,7 @@ abstract class MDictParser {
             }
             @Override
             protected String unescapeKey(final String keytext) {
-                return MDDReplacePattern.matcher(keytext).replaceAll("/");
+                return MDD_REPLACE_PATTERN.matcher(keytext).replaceAll("/");
             }
         };
     }
