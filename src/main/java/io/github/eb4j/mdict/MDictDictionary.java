@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -123,6 +125,40 @@ public class MDictDictionary {
         return styleSheet;
     }
 
+    public List<Map.Entry<String, String>> readArticlesPredictive(String word) throws MDException {
+        if (!mdx) {
+            throw new MDException("Can not retrieve text data from MDD file.");
+        }
+        List<Map.Entry<String, String>> result = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : getEntriesPredictive(word)) {
+            addEntry(result, entry);
+        }
+        return result;
+    }
+
+    public List<Map.Entry<String, String>> readArticles(final String word) throws MDException {
+        if (!mdx) {
+            throw new MDException("Can not retrieve text data from MDD file.");
+        }
+        List<Map.Entry<String, String>> result = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : getEntries(word)) {
+            addEntry(result, entry);
+        }
+        return result;
+    }
+
+    public byte[] readData(final String path) throws MDException {
+        for (Map.Entry<String, Object> entry: getEntries(path)) {
+            if (entry.getKey().equals(path)) {
+                Object value = entry.getValue();
+                if (value instanceof Long) {
+                    return getData((Long) value);
+                }
+            }
+        }
+        return null;
+    }
+
     public List<Map.Entry<String, Object>> getEntries(final String word) {
         return dictionaryData.lookUp(word);
     }
@@ -132,9 +168,6 @@ public class MDictDictionary {
     }
 
     public byte[] getData(final Long offset) throws MDException {
-        if (mdx) {
-            throw new MDException("Can not retrieve raw data from MDX file.");
-        }
         int index = recordIndex.searchOffsetIndex(offset);
         int pos = (int) (offset - recordIndex.getRecordOffsetDecomp(index));
         try {
@@ -190,6 +223,18 @@ public class MDictDictionary {
         }
     }
 
+    private void addEntry(final List<Map.Entry<String, String>> result, final Map.Entry<String, Object> entry)
+            throws MDException {
+        if (entry.getValue() instanceof Long) {
+            result.add(new AbstractMap.SimpleEntry<>(entry.getKey(), getText((Long) entry.getValue())));
+        } else {
+            Long[] values = (Long[]) entry.getValue();
+            for (Long value : values) {
+                result.add(new AbstractMap.SimpleEntry<>(entry.getKey(), getText(value)));
+            }
+        }
+    }
+
     private static String getBaseName(final String path) {
         String f = path;
         if (f.endsWith(".mdx")) {
@@ -198,7 +243,7 @@ public class MDictDictionary {
         return f;
     }
 
-    public static MDictDictionary loadDicitonary(final String mdxFile) throws MDException, IOException {
+    public static MDictDictionary loadDicitonary(final String mdxFile) throws MDException {
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
@@ -247,12 +292,11 @@ public class MDictDictionary {
     }
 
     /**
-         * parse dictionary.key file and return 128-bit regcode.
-         * @param mdxFile dictionary file path.
-         * @return byte[] password data
-         * @throws IOException when file read failed.
-         */
-    private static byte[] loadDictionaryKey(final String mdxFile) throws IOException {
+     * parse dictionary.key file and return 128-bit regcode.
+     * @param mdxFile dictionary file path.
+     * @return byte[] password data
+     */
+    private static byte[] loadDictionaryKey(final String mdxFile) {
         String dictName = getBaseName(mdxFile);
         File keyFile = new File(dictName + ".key");
         if (keyFile.canRead()) {
