@@ -40,32 +40,16 @@ public final class DictionaryDataBuilder<T> {
     }
 
     /**
-     * Insert a key=value pair into the data store. Unicode normalization is
-     * performed on the key. The value is stored both for the key and its
-     * lowercase version, if the latter differs.
-     *
-     * @param key
-     *            The key
-     * @param value
-     *            The value
-     */
-    public void add(final String key, final T value) {
-        doAdd(key, value);
-        String lowerKey = key.toLowerCase();
-        if (!key.equals(lowerKey)) {
-            doAdd(lowerKey, value);
-        }
-    }
-
-    /**
-     * Do the actual storing of the value. Most values are going to be singular,
+     * Insert a key=value pair into the data store.
+     * <p>
+     * Most values are going to be singular,
      * but dictionaries may store multiple definitions for the same key, so in
      * that case we store the values in an array.
      *
      * @param key
      * @param value
      */
-    private void doAdd(final String key, final T value) {
+    public void add(final String key, final T value) {
         Object stored = temp.get(key);
         if (stored == null) {
             temp.insert(key, value);
