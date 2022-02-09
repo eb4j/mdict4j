@@ -18,6 +18,8 @@
 
 package io.github.eb4j.mdict;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.github.eb4j.mdict.io.MDFileInputStream;
 import io.github.eb4j.mdict.io.MDInputStream;
 import io.github.eb4j.mdict.io.MDictUtils;
@@ -29,10 +31,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.DataFormatException;
 
@@ -40,6 +45,7 @@ public class MDictDictionary {
     private final MDFileInputStream mdInputStream;
     private final DictionaryData<Object> dictionaryData;
     private final RecordIndex recordIndex;
+    private final LoadingCache<Long, String> textCache;
 
     private final String mdxVersion;
     private final String title;
@@ -73,6 +79,11 @@ public class MDictDictionary {
         encrypted = info.getEncrypted();
         keyCaseSensitive = info.getKeyCaseSensitive();
         this.mdx = mdx;
+        //
+        textCache = Caffeine.newBuilder()
+                .expireAfterAccess(Duration.ofMinutes(15))
+                .maximumSize(1_000)
+                .build(this::getText);
     }
 
     public String getMdxVersion() {
@@ -223,14 +234,13 @@ public class MDictDictionary {
         }
     }
 
-    private void addEntry(final List<Map.Entry<String, String>> result, final Map.Entry<String, Object> entry)
-            throws MDException {
+    private void addEntry(final List<Map.Entry<String, String>> result, final Map.Entry<String, Object> entry) {
         if (entry.getValue() instanceof Long) {
-            result.add(new AbstractMap.SimpleEntry<>(entry.getKey(), getText((Long) entry.getValue())));
+            result.add(new AbstractMap.SimpleEntry<>(entry.getKey(), textCache.get((Long) entry.getValue())));
         } else {
             Long[] values = (Long[]) entry.getValue();
             for (Long value : values) {
-                result.add(new AbstractMap.SimpleEntry<>(entry.getKey(), getText(value)));
+                result.add(new AbstractMap.SimpleEntry<>(entry.getKey(), textCache.get(value)));
             }
         }
     }
