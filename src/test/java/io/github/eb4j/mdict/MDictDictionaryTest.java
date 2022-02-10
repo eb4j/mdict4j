@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class MDictDictionaryTest {
 
     @Test
-    void loadV2Dictionary() throws URISyntaxException, MDException, IOException {
+    void loadV2Dictionary() throws URISyntaxException, MDException {
         MDictDictionary dictionary = MDictDictionary.loadDicitonary(
                 Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath());
         assertNotNull(dictionary);
@@ -46,16 +46,19 @@ class MDictDictionaryTest {
         assertEquals("2021-11-11", dictionary.getCreationDate());
         assertEquals("EJDIC", dictionary.getTitle());
         assertEquals("\"UTF-8\" encoding.", dictionary.getDescription());
-        for (Map.Entry<String, Object> entry: dictionary.getEntries("test")) {
-            String word = entry.getKey();
-            Object value = entry.getValue();
-            String text = dictionary.getText((Long) value);
-            assertNotNull(text);
-        }
+        Map.Entry<String, Object> entry = dictionary.getEntries("Z").get(0);
+        Object value = entry.getValue();
+        String text = dictionary.getText((Long) value);
+        assertNotNull(text);
+        Map.Entry<String, String> result = dictionary.readArticles("Z").get(0);
+        assertEquals("Z", result.getKey());
+        assertEquals(text, result.getValue());
+        Map.Entry<String, String> result2 = dictionary.readArticlesPredictive("Z").get(0);
+        assertEquals(text, result2.getValue());
     }
 
     @Test
-    void loadV1Dictionary() throws URISyntaxException, MDException, IOException {
+    void loadV1Dictionary() throws URISyntaxException, MDException {
         MDictDictionary dictionary = MDictDictionary.loadDicitonary(
                 Objects.requireNonNull(this.getClass().getResource("/wordnet.mdx")).toURI().getPath());
         assertNotNull(dictionary);
@@ -67,13 +70,14 @@ class MDictDictionaryTest {
                         " 2 <font color=#990066><I>( )</I></font><br>" +
                         " 3    4 <br>  5 <br><font color=#666666><I> </I></font> ",
                 dictionary.getStyleSheet());
-        for (Map.Entry<String, Object> entry: dictionary.getEntries("test")) {
-            String word = entry.getKey();
-            assertNotNull(word);
-            Object value = entry.getValue();
-            String text = dictionary.getText((Long) value);
-            assertNotNull(text);
-        }
+        Map.Entry<String, Object> entry = dictionary.getEntries("test").get(0);
+        String word = entry.getKey();
+        assertNotNull(word);
+        Object value = entry.getValue();
+        String text = dictionary.getText((Long) value);
+        assertNotNull(text);
+        Map.Entry<String, String> result = dictionary.readArticles("test").get(0);
+        assertEquals(text, result.getValue());
     }
 
     @Test
