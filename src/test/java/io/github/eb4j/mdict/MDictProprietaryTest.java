@@ -30,12 +30,12 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MDictProprietaryTest {
 
     private static final String TARGET = "/proprietaryData/proprietary.mdx";
+    private static final String TARGET2 = "/proprietaryData/English-Italian-Dictionary.mdx";
 
     @Test
     @EnabledIf("targetFileExist")
@@ -45,38 +45,58 @@ class MDictProprietaryTest {
                 this.getClass().getResource(TARGET)).toURI().getPath());
         assertTrue(dictionary.isMdx());
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
-        assertEquals(false, dictionary.isHeaderEncrypted());
-        assertEquals(true, dictionary.isIndexEncrypted());
+        assertFalse(dictionary.isHeaderEncrypted());
+        assertTrue(dictionary.isIndexEncrypted());
         assertEquals("2.0", dictionary.getMdxVersion());
         assertEquals("Html", dictionary.getFormat());
         String[] queries = new String[] {"test", "script", "zoom"};
         for (String query: queries) {
-            for (Map.Entry<String, Object> entry : dictionary.getEntries(query)) {
-                String word = entry.getKey();
-                assertNotNull(word);
-                Object value = entry.getValue();
-                assertTrue(value instanceof Long);
-                String text = dictionary.getText((Long) value);
-                assertNotNull(text);
-            }
+            Map.Entry<String, String> entry = dictionary.readArticles(query).get(0);
+            String word = entry.getKey();
+            assertEquals(query, word);
+            String text = entry.getValue();
+            assertTrue(text.startsWith("<link rel=\"stylesheet\""));
         }
         MDictDictionary dictData = MDictDictionary.loadDictionaryData(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
         assertFalse(dictData.isMdx());
-        for (Map.Entry<String, Object> entry : dictData.getEntries("/audio/test.mp3")) {
-            String word = entry.getKey();
-            assertNotNull(word);
-            Object value = entry.getValue();
-            assertTrue(value instanceof Long);
-            byte[] buf = dictData.getData((Long) value);
-            Tika tika = new Tika();
-            String mediaType = tika.detect(buf);
-            assertEquals("audio/mpeg", mediaType);
-            break;
-        }
+        Map.Entry<String, Object> entry = dictData.getEntries("/audio/test.mp3").get(0);
+        String word = entry.getKey();
+        assertEquals("/audio/test.mp3", word);
+        Object value = entry.getValue();
+        assertTrue(value instanceof Long);
+        byte[] buf = dictData.getData((Long) value);
+        Tika tika = new Tika();
+        String mediaType = tika.detect(buf);
+        assertEquals("audio/mpeg", mediaType);
     }
 
     boolean targetFileExist() {
         return this.getClass().getResource(TARGET) != null;
+    }
+
+    @Test
+    @EnabledIf("target2FileExist")
+    void loadItalianDictionary() throws URISyntaxException, MDException {
+        MDictDictionary dictionary = MDictDictionary.loadDicitonary(Objects.requireNonNull(
+                this.getClass().getResource(TARGET)).toURI().getPath());
+        assertTrue(dictionary.isMdx());
+        assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
+        assertFalse(dictionary.isHeaderEncrypted());
+        assertTrue(dictionary.isIndexEncrypted());
+        assertEquals("2.0", dictionary.getMdxVersion());
+        assertEquals("Html", dictionary.getFormat());
+        String[] queries = new String[] {"test", "script", "zoom"};
+        for (String query: queries) {
+            Map.Entry<String, String> entry = dictionary.readArticles(query).get(0);
+            String word = entry.getKey();
+            assertEquals(query, word);
+            String text = entry.getValue();
+            assertTrue(text.startsWith("<link rel=\"stylesheet\""));
+        }
+    }
+
+    boolean target2FileExist() {
+        return this.getClass().getResource(TARGET2) != null;
     }
 }
