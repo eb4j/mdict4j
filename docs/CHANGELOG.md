@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0]
+* Caching index with Caffeine
+  * mdict4j automatically cache queried articles, maximum 1000 entries in 15 min.
+* Don't automatically index in lower case
+  * User need to check MDictDictionary#isKeyCaseSensitive() whether query lower case or not.
+* Bump versions
+  * slf4j-simple@1.7.36
+  * spotless@6.2.2
+* Fix and add test cases
+ 
 ## [0.2.4]
 * Introduce readArticles and readArticlesPredictive method
 * Introduce readData method
@@ -56,7 +66,8 @@ All notable changes to this project will be documented in this file.
 ## 0.1.0
 * First internal release
 
-[Unreleased]: https://github.com/eb4j/mdict4j/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/eb4j/mdict4j/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/eb4j/mdict4j/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/eb4j/mdict4j/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/eb4j/mdict4j/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/eb4j/mdict4j/compare/v0.2.1...v0.2.2
