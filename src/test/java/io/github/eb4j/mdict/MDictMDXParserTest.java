@@ -50,7 +50,7 @@ class MDictMDXParserTest {
         MDictParser parser = MDictParser.createMDXParser(inputStream);
         parser.parseHeader();
         DictionaryData<Object> index = parser.parseIndex(null);
-        assertEquals(100, index.size());
+        assertEquals(81, index.size());
         RecordIndex recordIndex = parser.parseRecordBlock();
         assertEquals(81, recordIndex.getRecordNumEntries());
     }
