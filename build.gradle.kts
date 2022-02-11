@@ -39,7 +39,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.jsoup:jsoup:1.14.3")
     testImplementation("org.apache.tika:tika-core:2.3.0")
-    testRuntimeOnly("org.slf4j:slf4j-simple:1.7.35")
+    testRuntimeOnly("org.slf4j:slf4j-simple:1.7.36")
 }
 
 tasks.getByName<Test>("test") {
