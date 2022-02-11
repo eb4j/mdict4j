@@ -25,7 +25,6 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains:annotations:23.0.0")
-    // Use older jackson for compatibility with other user projects
     implementation("com.fasterxml.jackson.core:jackson-core:2.13.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.1")
