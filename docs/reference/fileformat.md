@@ -1,9 +1,11 @@
-# Reference origin and license
+# File format specification
+
+## Reference origin and license
 
 A fileformat.md here is the reference description from [writemdict project](https://github.com/zhansliu/writemdict)
 with copyright by zhansliu, distributed under the MIT License, the term is attached as MIT.txt.
 
-# Introduction
+## Introduction
 
 This is a description of version 2.0 of the MDX and MDD file format,
 used by the [MDict](http://www.octopus-studio.com/product.en.htm) dictionary software.
@@ -14,7 +16,7 @@ Most of the information comes from https://bitbucket.org/xwang/mdict-analysis.
 While xwang mostly focuses on being able to read this unknown format,
 I have added details that are necessary to also write MDX files.
 
-# Concepts
+## Concepts
 
 MDX and MDD files are both designed to store an associative array of pairs (keyword, record).
 
@@ -38,7 +40,7 @@ and contains resources to be included in the text of MDX files.
 For example, and entry of the MDX file might contain the HTML code `<img src="/images/image.png" />`,
 in which case the MDict software will look for the entry "\image.png" in the MDD file.
 
-# File structure
+## File structure
 
 The basic file structure is a follows:
 
@@ -48,7 +50,7 @@ The basic file structure is a follows:
 | `keyword_sect` | Keyword section. See "Keyword Section" below. |
 | `record_sect`  | Record section. See "Record Section" below.  | 
 
-# Header Section
+## Header Section
 
 | `header_sect` |Length  |   |
 |---------------|-----|-----------------|
@@ -113,7 +115,7 @@ The meaning of the attributes are explained below:
 |`RegisterBy` | Either "EMail" or "DeviceID". Only used if the lower bit of `Encrypted` is set. Indicates which piece of user-identifying data is used to encrypt the encryption key. See the section [Keyword header encryption](#keyword-header-encryption) for details. |
 |`RegCode` | When keyword header encryption is used (see [Keyword header encryption](#keyword-header-encryption)), this is one way to deliver the encrypted key. In this case, this is a string consisting of 32 hexadecimal digits. |
 
-# Keyword Section
+## Keyword Section
 
 The keyword section contains all the keywords in the dictionary, divided into blocks, as well as information about the sizes of these blocks.
 
@@ -156,7 +158,7 @@ The 128-bit `reg_code` is then distributed to the user. This can be done in two 
 * If the MDX file is called `dictionary.mdx`, the dictionary reader should look for a file called `dictionary.key` in the same directory, which contains `reg_code` as a 32-digit hexadecimal string.
 * Otherwise, `reg_code` can be included in the header of the MDX file, as the attribute `RegCode`.
 
-## Keyword index
+### Keyword index
 
 The keyword index lists some basic data about the key blocks. It is compressed (see "Compression"), and possibly encrypted (see "Keyword index encryption"). After decompression and decryption, it looks like this:
 
@@ -173,7 +175,7 @@ The keyword index lists some basic data about the key blocks. It is compressed (
 | ...                       |      ...|... |
 | `decomp_size[num_blocks-1]` | 8 bytes |... |
 
-### Keyword index encryption:
+#### Keyword index encryption:
 
 If the parameter `Encrypted` in the header has its second-lowest bit set (i.e. `Encrypted | 2` is nonzero), then the keyword index is further encrypted. In this case, the `comp_type` and `checksum` fields will be unchanged (refer to the section Compression), the following C function
 will be used to encrypt the `compressed_data` part, after compression.
@@ -189,7 +191,7 @@ will be used to encrypt the `compressed_data` part, after compression.
 
 The encryption key used is `ripemd128(checksum + "\x95\x36\x00\x00")`, where + denotes string concatenation.
 
-## Keyword blocks
+### Keyword blocks
 
 Each keyword is compressed (see "Compression"). After decompressing, they look like this:
 
@@ -204,7 +206,7 @@ Each keyword is compressed (see "Compression"). After decompressing, they look l
 The offset should be interpreted as follows: Decompress all record blocks, and concatenate them together, and let `records` denote
 the resulting array of bytes. The record corresponding to `key[i]` then starts at `records[offset[i]]`. 
 
-# Record section
+## Record section
 
 The record section looks like this:
 
@@ -223,7 +225,7 @@ The record section looks like this:
 | ...           |     ... | ... |
 | `rec_block[num_blocks-1]` | varying |...|
 
-## Record block
+### Record block
 
 Each record block is compressed (see "Compression"). After decompressing, they look like this:
 
@@ -233,7 +235,7 @@ Each record block is compressed (see "Compression"). After decompressing, they l
 | `record[1]`                | varying |...|
 | ...                        |   ...   |...|
 
-# Compression:
+## Compression:
 
 Various data blocks are compressed using the same scheme. These all look like these:
 
