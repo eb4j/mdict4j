@@ -11,4 +11,4 @@ updates:
     open-pull-requests-limit: 200
     ignore:
       - dependency-name: "caffeine"
-        verions: ["3.x"]
+        versions: ["3.x"]
