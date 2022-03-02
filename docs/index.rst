@@ -5,6 +5,8 @@ mdict4j
    :maxdepth: 1
    :caption: Contents:
 
+   about
+   howtouse
    CHANGELOG
    reference/fileformat
 
