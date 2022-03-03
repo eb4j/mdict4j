@@ -1,6 +1,6 @@
 /*
  * MD4J, a parser library for MDict format.
- * Copyright (C) 2021 Hiroshi Miura.
+ * Copyright (C) 2021,2022 Hiroshi Miura.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,10 +34,8 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.DataFormatException;
 
@@ -253,7 +251,7 @@ public class MDictDictionary {
         return f;
     }
 
-    public static MDictDictionary loadDicitonary(final String mdxFile) throws MDException {
+    public static MDictDictionary loadDictionary(final String mdxFile) throws MDException {
         File file = new File(mdxFile);
         if (!file.isFile()) {
             throw new MDException("Target file is not MDict file.");
