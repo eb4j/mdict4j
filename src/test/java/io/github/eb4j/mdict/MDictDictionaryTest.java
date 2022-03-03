@@ -1,6 +1,6 @@
 /*
  * MD4J, a parser library for MDict format.
- * Copyright (C) 2021 Hiroshi Miura.
+ * Copyright (C) 2021,2022 Hiroshi Miura.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ class MDictDictionaryTest {
 
     @Test
     void loadV2Dictionary() throws URISyntaxException, MDException {
-        MDictDictionary dictionary = MDictDictionary.loadDicitonary(
+        MDictDictionary dictionary = MDictDictionary.loadDictionary(
                 Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath());
         assertNotNull(dictionary);
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
@@ -59,7 +58,7 @@ class MDictDictionaryTest {
 
     @Test
     void loadV1Dictionary() throws URISyntaxException, MDException {
-        MDictDictionary dictionary = MDictDictionary.loadDicitonary(
+        MDictDictionary dictionary = MDictDictionary.loadDictionary(
                 Objects.requireNonNull(this.getClass().getResource("/wordnet.mdx")).toURI().getPath());
         assertNotNull(dictionary);
         assertEquals("1.2", dictionary.getMdxVersion());
@@ -81,12 +80,12 @@ class MDictDictionaryTest {
     }
 
     @Test
-    void loadMultipleDictionary() throws URISyntaxException, MDException, IOException {
+    void loadMultipleDictionary() throws URISyntaxException, MDException {
         String[] words = new String[] {"test", "word"};
         List<MDictDictionary> dictionaries = new ArrayList<>();
-        dictionaries.add(MDictDictionary.loadDicitonary(
+        dictionaries.add(MDictDictionary.loadDictionary(
                 Objects.requireNonNull(this.getClass().getResource("/test.mdx")).toURI().getPath()));
-        dictionaries.add(MDictDictionary.loadDicitonary(
+        dictionaries.add(MDictDictionary.loadDictionary(
                 Objects.requireNonNull(this.getClass().getResource("/wordnet.mdx")).toURI().getPath()));
         for (String word: words) {
             for (MDictDictionary dict : dictionaries) {

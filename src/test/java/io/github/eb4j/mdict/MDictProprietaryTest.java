@@ -41,7 +41,7 @@ class MDictProprietaryTest {
     @EnabledIf("targetFileExist")
     // Test with proprietary dictionary data; requires dictionary prepared by tester
     void loadProprietaryDictionary() throws URISyntaxException, MDException, IOException {
-        MDictDictionary dictionary = MDictDictionary.loadDicitonary(Objects.requireNonNull(
+        MDictDictionary dictionary = MDictDictionary.loadDictionary(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
         assertTrue(dictionary.isMdx());
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
@@ -78,7 +78,7 @@ class MDictProprietaryTest {
     @Test
     @EnabledIf("target2FileExist")
     void loadItalianDictionary() throws URISyntaxException, MDException {
-        MDictDictionary dictionary = MDictDictionary.loadDicitonary(Objects.requireNonNull(
+        MDictDictionary dictionary = MDictDictionary.loadDictionary(Objects.requireNonNull(
                 this.getClass().getResource(TARGET)).toURI().getPath());
         assertTrue(dictionary.isMdx());
         assertEquals(StandardCharsets.UTF_8, dictionary.getEncoding());
