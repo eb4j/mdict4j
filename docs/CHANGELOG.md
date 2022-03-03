@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.1]
+* Fix public method name typo
+  * change main load method name MDictDictionary#loadDictionary
+ 
 ## [0.3.0]
 * Caching index with Caffeine
   * mdict4j automatically cache queried articles, maximum 1000 entries in 15 min.
@@ -66,7 +70,8 @@ All notable changes to this project will be documented in this file.
 ## 0.1.0
 * First internal release
 
-[Unreleased]: https://github.com/eb4j/mdict4j/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/eb4j/mdict4j/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/eb4j/mdict4j/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/eb4j/mdict4j/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/eb4j/mdict4j/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/eb4j/mdict4j/compare/v0.2.2...v0.2.3
