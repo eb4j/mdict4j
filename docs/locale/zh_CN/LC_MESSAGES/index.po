@@ -3,41 +3,78 @@
 # This file is distributed under the same license as the mdict4j package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: mdict4j 0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-05 10:16+0900\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2022-03-05 12:54+0900\n"
+"PO-Revision-Date: 2022-03-05 12:59+0900\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"X-Generator: Poedit 2.3\n"
 
-#: ../../../docs/index.rst:2
-msgid "mdict4j"
+#: ../../../docs/index.rst:3
+msgid "Mdict4j"
 msgstr ""
 
-#: ../../../docs/index.rst:4
-msgid "Contents:"
+#: ../../../docs/index.rst:5
+msgid ""
+"MDict is one of popular dictionary formats. Mdict4j is a parser library "
+"for mdict dictionary."
+msgstr "MDict是很受欢迎的词典格式之一。Mdict4j是mdict词典的解析器库。"
+
+#: ../../../docs/index.rst:9
+msgid "Development status"
+msgstr "发展状况"
+
+#: ../../../docs/index.rst:11
+msgid "A status of library development is considered as `Alpha`."
 msgstr ""
+"图书馆的发展状况被认为是\"Alpha\"。图书馆的发展状况被认为是\"Alpha\"。"
 
 #: ../../../docs/index.rst:14
-msgid "Indices and tables"
-msgstr ""
+msgid "License"
+msgstr "权"
 
 #: ../../../docs/index.rst:16
+msgid ""
+"Mdict4j is distributed under GNU General Public License version 3 or (at "
+"your option) any later version. Please see LICENSE file in project root."
+msgstr ""
+"Mdict4j是依据\"GNU通用公共授权\"第3版或(由您选择)任何更新的版本发布。请参"
+"阅专案根目录中的授权档案。"
+
+#: ../../../docs/index.rst:20
+msgid "Contents"
+msgstr "内容"
+
+#: ../../../docs/index.rst:22
+msgid ""
+"When you want to use the library in your application project, please "
+"check \"How to use\" section. When you are interested in joining the "
+"mdict4j project, \"File format specification\" section is good start "
+"point."
+msgstr ""
+"如果您想在应用程式专案中使用程式库，请勾选\"如何使用\"一节。如果您有兴趣"
+"加入mdict4j专案，\"档案格式规范\"一节是很好的起点。"
+
+#: ../../../docs/index.rst:34
+msgid "Index"
+msgstr "索引"
+
+#: ../../../docs/index.rst:36
 msgid ":ref:`genindex`"
 msgstr ""
 
-#: ../../../docs/index.rst:17
+#: ../../../docs/index.rst:37
 msgid ":ref:`modindex`"
 msgstr ""
 
-#: ../../../docs/index.rst:18
+#: ../../../docs/index.rst:38
 msgid ":ref:`search`"
 msgstr ""
-
