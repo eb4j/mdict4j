@@ -1,0 +1,66 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2022, Hiroshi Miura
+# This file is distributed under the same license as the mdict4j package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mdict4j 0.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-05 10:16+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../../docs/howtouse.rst:2
+msgid "How to use mdict4j"
+msgstr "mdict4jの利用法"
+
+#: ../../../docs/howtouse.rst:5
+msgid "Install"
+msgstr "インストール"
+
+#: ../../../docs/howtouse.rst:7
+msgid ""
+"When you use gradle for build system, you can install mdict4j from "
+"mavenCentral."
+msgstr ""
+"Gradleをビルドシステムとして利用している場合には、mavenCentralからmdict4jを"
+"インストールできます。"
+
+#: ../../../docs/howtouse.rst:16
+msgid "Loading dictionary file"
+msgstr "辞書ファイルのロード"
+
+#: ../../../docs/howtouse.rst:18
+msgid ""
+"You should load dictionary and create MdictDictionary object in order to "
+"invoke search query."
+msgstr ""
+"辞書ファイルをロードしてMDictDictionary オブジェクトを作成し、このオブジェクトから"
+"辞書検索できます。"
+
+#: ../../../docs/howtouse.rst:26
+msgid "MDictDictionary object has several method to indicate mdx file properties."
+msgstr "MDictDictionaryオブジェクトには、MDXファイルの属性を調べるメソッドがあります。"
+
+#: ../../../docs/howtouse.rst:48
+msgid ""
+"You can invoke query from MDictDictionary object. "
+"MDictDictionary::readArticles method returns a list of entries."
+msgstr ""
+"MDictDictionaryオブジェクトから検索できます。"
+"MDictDictionary::readArticles メソッドは、検索結果をリストで返却します。"
+
+#: ../../../docs/howtouse.rst:56
+msgid ""
+"When you want to load MDD data file, you can give it to "
+"MDictDictionary##loadDictionaryData method."
+msgstr ""
+"MDDデータファイルをよみこむときは"
+"MDictDictionary##loadDictionaryData メソッドを使用します。"

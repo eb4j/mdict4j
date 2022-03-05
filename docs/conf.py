@@ -64,6 +64,10 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
+#----------------- i18n
+
+locale_dirs = ['locale/']
+gettext_compact = False
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -97,7 +101,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pdic4jdoc'
+htmlhelp_basename = 'mdict4jdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------

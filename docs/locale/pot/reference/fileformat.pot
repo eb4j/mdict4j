@@ -1,0 +1,254 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2022, Hiroshi Miura
+# This file is distributed under the same license as the mdict4j package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mdict4j 0.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-05 10:16+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../../../docs/reference/fileformat.md:1
+msgid "File format specification"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:3
+msgid "Reference origin and license"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:5
+msgid "A fileformat.md here is the reference description from writemdict project with copyright by zhansliu, distributed under the MIT License, the term is attached as MIT.txt."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:8
+msgid "Introduction"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:10
+msgid "This is a description of version 2.0 of the MDX and MDD file format, used by the MDict dictionary software. The software is not open-source, nor is the file format openly specified, so the following description is based on reverse-engineering, and is likely incomplete and inaccurate in its details."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:15
+msgid "Most of the information comes from https://bitbucket.org/xwang/mdict-analysis. While xwang mostly focuses on being able to read this unknown format, I have added details that are necessary to also write MDX files."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:19
+msgid "Concepts"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:21
+msgid "MDX and MDD files are both designed to store an associative array of pairs (keyword, record)."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:23
+msgid "For MDX files, the information stored is typically a dictionary. The keyword and record are both (Unicode) strings, with the keyword being the headword for the dictionary entry, and the record giving a description of that word. An example of an MDX entry could be:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:25
+msgid "keyword: \"reverse engineering\""
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:26
+msgid "record: \"<i>noun:</i> a process of analyzing and studying an object or device, in order to understand its inner workings\""
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:28
+msgid "MDD files are instead designed to store binary data. Typically, the keyword is a file path, and the record is the contents of that file. As an example, we may have:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:31
+msgid "keyword: \"\\image.png\""
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:32
+msgid "record: 0x89 0x50 0x4e 0x47 0x0d 0x0a 0x1a 0x0a..."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:34
+msgid "MDX files is designed to store a dictionary, i.e. a collection of pairs (keyword, record), which could be, for example, keyword=\"reverse engineering\", record=\"<i>noun:</i> a process of analyzing and studying an object or device, in order to understand its inner workings\"."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:38
+msgid "Typically, MDD files are associated with an MDX file of the same name (but with extension .mdx instead of .mdd), and contains resources to be included in the text of MDX files. For example, and entry of the MDX file might contain the HTML code <img src=\"/images/image.png\" />, in which case the MDict software will look for the entry \"\\image.png\" in the MDD file."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:43
+msgid "File structure"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:45
+msgid "The basic file structure is a follows:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:47
+msgid "| MDX File       |            | |----------------|------------| | header_sect  | Header section. See \"Header Section\" below.  | | keyword_sect | Keyword section. See \"Keyword Section\" below. | | record_sect  | Record section. See \"Record Section\" below.  |"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:53
+msgid "Header Section"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:55
+msgid "| header_sect |Length  |   | |---------------|-----|-----------------| | length      | 4 bytes | Length of header_str, in bytes. Big-endian. | header_str  | varying | An XML string, encoded in UTF-16LE. See below for details. | | checksum    | 4 bytes | ADLER32 checksum of header_str, stored little-endian.  |"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:61
+msgid "The header_str consists of a single, XML tag dictionary, with various attributes. For MDX files, they look like this: (newlines added for clarity)"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:80
+msgid "For MDD files, we have instead:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:98
+msgid "The meaning of the attributes are explained below:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:100
+msgid "| Attribute | Description | |-----------|-------------| |GeneratedByEngineVersion| The version of the file format. This document describes version 2.0. Apart from this, version 1.2 is also possible.| |RequiredEngineVersion | Presumably the lowest format version compatible with this version. | |Encrypted | An integer between 0 and 3 (inclusive). If the lower bit is set, indicates that the first part of the keyword section is encrypted, as described in the section Keyword header encryption. If the upper bit is set, indicates that the keyword index is encrypted, using the scheme described in Keyword index encryption. | |Encoding| Only used for MDX files. The encoding used for text in the document. Possible values are \"UTF-8\", \"UTF-16\" (uses little-endian encoding), \"GBK\", and \"Big5\". For MDD files, the encoding used for the keywords (file paths) is always UTF-16, and the records consist of binary data. | |Format| The format of the dictionary entry texts. Possible values include \"Html\" and \"Text\". For MDD files, this must be empty. | |CreationDate | The date the dictionary was created. | |Compact | If this is \"Yes\", indicates the dictionary entries is in an Mdict-specific compact format, where certain string are replaced according to the scheme specified in StyleSheet. See the documentation for the official MdxBuilder client for details. | |Compat | Appears to be a typo for Compact, which certain versions of the official Mdict client look for instead of Compact. | |KeyCaseSensitive | Indicates to the dictionary reader whether or not keys should be treated in a case-insensitive manner. | |Description | A description of the dictionary, which appears as the \":about\" page in the official MDict client. | |Title | The title of the dictionary. | |DataSourceFormat | Unknown. | |StyleSheet | Used in conjunction with the Compact option. See the documentation for the official MdxBuilder client for details. | |RegisterBy | Either \"EMail\" or \"DeviceID\". Only used if the lower bit of Encrypted is set. Indicates which piece of user-identifying data is used to encrypt the encryption key. See the section Keyword header encryption for details. | |RegCode | When keyword header encryption is used (see Keyword header encryption), this is one way to deliver the encrypted key. In this case, this is a string consisting of 32 hexadecimal digits. |"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:118
+msgid "Keyword Section"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:120
+msgid "The keyword section contains all the keywords in the dictionary, divided into blocks, as well as information about the sizes of these blocks."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:122
+msgid "| keyword_sect | Length|      | |----------------|------|------| | num_blocks   | 8 bytes | Number of items in key_blocks. Big-endian. Possibly encrypted, see below. | | num_entries  | 8 bytes | Total number of keywords. Big-endian. Possibly encrypted, see below. | | key_index_decomp_len | 8 bytes | Number of bytes in decompressed version of key_index. Big-endian. Possibly encrypted, see below. | | key_index_comp_len   | 8 bytes | Number of bytes in compressed version of key_index (including the comp_type and checksum parts). Big-endian. Possibly encrypted, see below. | | key_blocks_len       | 8 bytes | Total number of bytes taken up by key_blocks. Big-endian. Possibly encrypted, see below. | | checksum             | 4 bytes | ADLER32 checksum of the preceding 40 bytes. If those are encrypted, it is the checksum of the decrypted version. Big-endian. | | key_index            | varying | The keyword index, compressed and possibly encrypted. See below. | | key_blocks[0]       | varying | A compressed block containing keywords, compressed. See below.  | | ...                    |    ...  | ...| | key_blocks[num_blocks-1] | varying |... |"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:135
+msgid "Keyword header encryption:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:137
+msgid "If the parameter Encrypted in the header has the lowest bit set (i.e. Encrypted | 1 is nonzero), then the 40-byte block from num_blocks are encrypted. The encryption used is Salsa20/8 (Salsa20 with 8 rounds instead of 20). In pseudo-Python:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:147
+msgid "Here, encryption_key is the dictionary password specified on creation of the dictionary."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:149
+msgid "This encryption_key is not distributed directly. Instead it is further encrypted, using a piece of data, user_id, that is specific to the user or the client machine, according to the following scheme:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:153
+msgid "The string user_id can be either an email address (\"example@example.com\") that the user enters into his/her MDict client, or a device ID (\"12345678-90AB-CDEF-0123-4567890A\") which the MDict client obtains in different ways depending on the platform. The choice of which one to use depends on the attribute RegisterBy in the file header. (See Header section.) In either case, user_id is an ASCII-encoded string. On certain platforms, the official MDict client seems to default to the DeviceID being the empty string."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:156
+msgid "The 128-bit reg_code is then distributed to the user. This can be done in two ways:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:158
+msgid "If the MDX file is called dictionary.mdx, the dictionary reader should look for a file called dictionary.key in the same directory, which contains reg_code as a 32-digit hexadecimal string."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:159
+msgid "Otherwise, reg_code can be included in the header of the MDX file, as the attribute RegCode."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:161
+msgid "Keyword index"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:163
+msgid "The keyword index lists some basic data about the key blocks. It is compressed (see \"Compression\"), and possibly encrypted (see \"Keyword index encryption\"). After decompression and decryption, it looks like this:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:165
+msgid "| decompress(key_index) | Length |  | |----------------------------|------|----| | num_entries[0]          | 8 bytes | Number of keywords in the first keyword block. | | first_size[0]           | 2 bytes | Length of first_word[0], not including trailing null character. In number of \"basic units\" for the encoding, so e.g. bytes for UTF-8, and 2-byte units for UTF-16. | | first_word[0]           | varying | The first keyword (alphabetically) in the key_blocks[0] keyword block. Encoding given by Encoding attribute in the header. | | last_size[0]           | 2 bytes | Length of last_word[0], not including trailing null character. In number of \"basic units\" for the encoding, so e.g. bytes for UTF-8, and 2-byte units for UTF-16. | | last_word[0]            | varying | The last keyword (alphabetically) in the key_blocks[0] keyword block. Encoding given by Encoding attribute in the header. | | comp_size[0]            | 8 bytes | Compressed size of key_blocks[0]. | | decomp_size[0]          | 8 bytes | Decompressed size of key_blocks[0]. | | num_entries[1]          | 8 bytes |... | | ...                       |      ...|... | | decomp_size[num_blocks-1] | 8 bytes |... |"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:178
+msgid "Keyword index encryption:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:180
+msgid "If the parameter Encrypted in the header has its second-lowest bit set (i.e. Encrypted | 2 is nonzero), then the keyword index is further encrypted. In this case, the comp_type and checksum fields will be unchanged (refer to the section Compression), the following C function will be used to encrypt the compressed_data part, after compression."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:192
+msgid "The encryption key used is ripemd128(checksum + \"\\x95\\x36\\x00\\x00\"), where + denotes string concatenation."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:194
+msgid "Keyword blocks"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:196
+msgid "Each keyword is compressed (see \"Compression\"). After decompressing, they look like this:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:198
+msgid "| decompress(key_blocks[0]) | Length  |   | |-----------------|---------|------| | offset[0]     | 8 bytes | Offset where the record corresponding to key[0] can be found, see below. Big-endian. | | key[0]        | varying | The first keyword in the dictionary, null-terminated and encoded using Encoding.  | | offset[1]     | 8 bytes | ... | | key[1]        | varying | ... | | ...             |   ... | ... |"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:206
+msgid "The offset should be interpreted as follows: Decompress all record blocks, and concatenate them together, and let records denote the resulting array of bytes. The record corresponding to key[i] then starts at records[offset[i]]."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:209
+msgid "Record section"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:211
+msgid "The record section looks like this:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:213
+msgid "| record_sect   | Length  |    | |-----------------|---------|----| | num_blocks | 8 bytes | Number items in record_blocks. Does not need to equal the number of keyword blocks. Big-endian. | | num_entries | 8 bytes | Total number of records in dictionary. Should be equal to keyword_sect.num_entries. Big-endian. | | index_len | 8 bytes | Total size of the comp_size[i] and decomp_size[i] variables, in bytes. In other words, should equal 16 times num_blocks. Big-endian. | | blocks_len | 8 bytes | Total size of the rec_block[i] sections, in bytes. Big-endian. | | comp_size[0] | 8 bytes | Length of rec_block[0], in bytes. Big-endian. | | decomp_size[0] | 8 bytes | Decompressed size of rec_block[i], in bytes. Big-endian. | | comp_size[1] | 8 bytes | Length of rec_block[1], in bytes. Big-endian. | | ...           |   ...    |  ... | | decomp_size[num_blocks-1] | 8 bytes | ... | | rec_block[0] | varying | A compressed block containing records. See below. | | ...           |     ... | ... | | rec_block[num_blocks-1] | varying |...|"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:228
+msgid "Record block"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:230
+msgid "Each record block is compressed (see \"Compression\"). After decompressing, they look like this:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:232
+msgid "| decompress(rec_block[0]) | Length | | |----------------------------|--------|-----| | record[0]                | varying | The first record. If in an MDX file, this is null-terminated and encoded using Encoding. | | record[1]                | varying |...| | ...                        |   ...   |...|"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:238
+msgid "Compression:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:240
+msgid "Various data blocks are compressed using the same scheme. These all look like these:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:242
+msgid "| compress(data)  | Length |  | |-------------------|--------|------| | comp_type       | 4 bytes | Compression type. See below. | | checksum        | 4 bytes | ADLER32 checksum of the uncompressed data. Big-endian. | | compressed_data | varying | Compressed version of data.|"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:248
+msgid "The compression type can be indicated by comp_type. There are three options:"
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:250
+msgid "If comp_type is '\\x00\\x00\\x00\\x00', then no compression is applied at all, and compressed_data is equal to data."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:251
+msgid "If comp_type is '\\x01\\x00\\x00\\x00', LZO compression is used."
+msgstr ""
+
+#: ../../../docs/reference/fileformat.md:252
+msgid "If comp_type is '\\x02\\x00\\x00\\x00', zlib compression is used. It so happens that the zlib compression format appends an ADLER32 checksum, so in this case, checksum will be equal to the last four bytes of compressed_data."
+msgstr ""
+
