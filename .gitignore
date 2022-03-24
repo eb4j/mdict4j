@@ -26,3 +26,9 @@ build
 .gradle
 out
 version.properties
+
+# gettext objects
+*.mo
+
+# python cache
+__pycache__
