@@ -11,7 +11,7 @@ plugins {
     `maven-publish`
     kotlin("jvm") version "1.6.10"
     id("com.github.spotbugs") version "5.0.6"
-    id("com.diffplug.spotless") version "6.3.0"
+    id("com.diffplug.spotless") version "6.4.0"
     id("com.github.kt3k.coveralls") version "2.12.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("com.palantir.git-version") version "0.13.0" apply false
