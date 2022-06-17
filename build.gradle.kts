@@ -34,7 +34,7 @@ dependencies {
     implementation("com.github.takawitter:trie4j:0.9.8")
     // use Caffeine cache for java 8 (3.x requires Java11)
     implementation("com.github.ben-manes.caffeine:caffeine:2.9.3")
-    testImplementation("org.codehaus.groovy:groovy-all:3.0.10")
+    testImplementation("org.codehaus.groovy:groovy-all:3.0.11")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
