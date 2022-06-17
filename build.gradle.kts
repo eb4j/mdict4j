@@ -28,7 +28,7 @@ dependencies {
     implementation("org.jetbrains:annotations:23.0.0")
     implementation("com.fasterxml.jackson.core:jackson-core:2.13.3")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.2")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.3")
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
     implementation("org.anarres.lzo:lzo-core:1.0.6")
     implementation("com.github.takawitter:trie4j:0.9.8")
