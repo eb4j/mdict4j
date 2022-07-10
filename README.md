@@ -1,16 +1,11 @@
-# MDict4J library
+# Give Up GitHub
 
-MDict is one of popular dictionary formats.
-mdict4j is a parser library for MDict dictionary.
+This project has given up GitHub.  ([See Software Freedom Conservancy's *Give Up  GitHub* site for details](https://GiveUpGitHub.org).)
 
-## Development status
+You can now find this project at [codeberg.org](https://codeberg.org/eb4j/mdict4j) instead.
 
-A status of library development is considered as `Alpha`.
+Any use of this project's code by GitHub Copilot, past or present, is done without our permission.  We do not consent to GitHub's use of this project's code in Copilot.
 
-## Document
+Join us; you can [give up GitHub](https://GiveUpGitHub.org) too!
 
-You can find a document at https://mdict4j.readthedocs.io/en/latest/
-
-## License
-
-md4j is distributed under GNU General Public License version 3 or (at your option) any later version.
+![Logo of the GiveUpGitHub campaign](https://sfconservancy.org/img/GiveUpGitHub.png)
